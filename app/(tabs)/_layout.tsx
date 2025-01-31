@@ -1,9 +1,22 @@
 import { Tabs } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import React from 'react';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import AntDesign from '@expo/vector-icons/AntDesign';
+import Entypo from '@expo/vector-icons/Entypo';
+import React, { useState } from 'react';
+import Login from './login';
 
 export default function TabLayout() {
-  return (
+  const [isLogged, setIsLogged] = useState(false)
+
+  const loginActivated = (username: string, password: string) => {
+    setIsLogged(true)
+  }
+
+  if(!isLogged) {
+    return <Login onLogin={loginActivated}/>
+  } else {
+    return (
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: '#ffd33d',
@@ -27,14 +40,39 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="about"
+          name="create"
           options={{
-            title: 'About',
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'information-circle' : 'information-circle-outline'} color={color} size={24}/>
+            title: 'New',
+            tabBarIcon: ({ color }) => (
+              <Entypo name="new-message" size={24} color={color} />
             ),
           }}
         />
+        <Tabs.Screen
+          name="search"
+          options={{
+            title: 'Search',
+            tabBarIcon: ({ color }) => (
+              <AntDesign name="search1" size={24} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="account"
+          options={{
+            title: 'Account',
+            tabBarIcon: ({ color }) => (
+              <MaterialIcons name="account-circle" color={color} size={24} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+        name="login"
+        options={{
+          href: null,
+        }}
+      />
       </Tabs>
-  );
+    )
+  }
 }
