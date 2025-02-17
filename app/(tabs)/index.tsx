@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { supabase } from '../db/supabase';
 
 export default function Index() {
@@ -17,7 +17,7 @@ export default function Index() {
       .select('*')
       .order('REP_created_at', { ascending: false })
       .limit(5);
-    
+
     if (error) console.error(error);
     else {
       setLatestPosts(data);
@@ -33,31 +33,93 @@ export default function Index() {
   };
 
   const renderPost = ({ item }: { item: any }) => (
-    <TouchableOpacity className="p-4 border-b border-gray-300">
-      <Text className="text-lg font-bold">{item.REP_libelle}</Text>
-      <Text className="text-gray-600">{item.REP_created_at}</Text>
+    <TouchableOpacity style={styles.postItem}>
+      <Text style={styles.postTitle}>{item.REP_libelle}</Text>
+      <Text style={styles.postDate}>{new Date(item.REP_created_at).toLocaleDateString()}</Text>
     </TouchableOpacity>
-  )
+  );
 
   return (
-    <View className="flex-1 p-4 bg-white">
-      <Text className="text-2xl font-bold mb-4">Welcome to the Blog!</Text>
-      
-      <Text className="text-xl font-semibold mb-2">Latest Posts</Text>
+    <View style={styles.container}>
+      <Text style={styles.header}>Welcome to the Blog!</Text>
+
+      <Text style={styles.sectionTitle}>Latest Posts</Text>
       <FlatList
         data={latestPosts}
         renderItem={renderPost}
         keyExtractor={(item) => item.REP_id}
+        contentContainerStyle={styles.listContainer}
       />
-      
-      <Text className="text-xl font-semibold mt-4 mb-2">Categories</Text>
-      <View className="flex-row flex-wrap">
-        {categories.map((object: any) =>
-          <Text key={object.BAS_id} className="bg-blue-500 text-white px-3 py-1 rounded-full m-1">
+
+      <Text style={styles.sectionTitle}>Categories</Text>
+      <View style={styles.categoriesContainer}>
+        {categories.map((object: any) => (
+          <Text key={object.BAS_id} style={styles.categoryItem}>
             {object.BAS_libelle}
           </Text>
-        )}
+        ))}
       </View>
     </View>
   );
-};
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#f9f9f9',
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#333',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#555',
+  },
+  listContainer: {
+    paddingBottom: 16,
+  },
+  postItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+  },
+  postTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  postDate: {
+    fontSize: 14,
+    color: '#777',
+    marginTop: 4,
+  },
+  categoriesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 8,
+  },
+  categoryItem: {
+    backgroundColor: '#007BFF',
+    color: '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+    marginBottom: 8,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+});
