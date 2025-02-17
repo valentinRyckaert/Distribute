@@ -67,11 +67,17 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-        name="login"
-        options={{
-          href: null,
-        }}
-      />
+          name="login"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="oneReport"
+          options={{
+            href: null,
+          }}
+        />
       </Tabs>
     )
   }

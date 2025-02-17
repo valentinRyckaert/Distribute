@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../db/supabase';
 
 export default function Index() {
   const [latestPosts, setLatestPosts] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const navigation = useNavigation();
 
   useEffect(() => {
     fetchLatestPosts();
@@ -32,12 +34,18 @@ export default function Index() {
     else setCategories(data.map((cat: any) => cat));
   };
 
-  const renderPost = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.postItem}>
-      <Text style={styles.postTitle}>{item.REP_libelle}</Text>
-      <Text style={styles.postDate}>{new Date(item.REP_created_at).toLocaleDateString()}</Text>
-    </TouchableOpacity>
-  );
+  const renderPost = ({ item }: { item: any }) => {
+    return (
+      <TouchableOpacity
+        style={styles.postItem}
+        onPress={() => navigation.navigate('oneReport', { post: item })}
+      >
+        <Text style={styles.postTitle}>{item.REP_libelle}</Text>
+        <Text style={styles.postDate}>{new Date(item.REP_created_at).toLocaleDateString()}</Text>
+      </TouchableOpacity>
+    );
+  };
+  
 
   return (
     <View style={styles.container}>
