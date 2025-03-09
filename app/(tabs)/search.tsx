@@ -1,8 +1,9 @@
-import { Text, View, StyleSheet } from 'react-native';
-import React from 'react';
+import { View, Text } from "react-native";
 
 export default function Search() {
-  return (
-    <Text>search screen</Text>
-  );
+    return (
+        <View>
+            <Text>Hello</Text>
+        </View>
+    )
 }

@@ -1,11 +1,26 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react'
+import { View, Text, StyleSheet } from 'react-native'
+import { supabase } from '@/app/lib/supabase'
+import { useLocalSearchParams } from 'expo-router'
 
-export default function OneReport() {
-  const route = useRoute();
-  const { post } = route.params;
+export default function Index() {
+  const [post, setPost]: any = useState<any[]>([])
+  const local = useLocalSearchParams()
 
+  useEffect(() => {
+    fetchPost()
+  }, [])
+
+  const fetchPost = async () => {
+    const { data, error } = await supabase
+      .from('Report')
+      .select('*')
+      .eq('REP_id', local.id)
+    if (error) console.error(error)
+    else {
+      setPost(data[0])
+    }
+  }
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{post.REP_libelle}</Text>
@@ -14,7 +29,7 @@ export default function OneReport() {
       <Text style={styles.solution}>Solution: {post.REP_solution}</Text>
       <Text style={styles.validation}>Is Solution Validated: {post.REP_is_solution_validated ? 'Yes' : 'No'}</Text>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -48,4 +63,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#555',
   },
-});
+})

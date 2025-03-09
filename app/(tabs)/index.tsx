@@ -1,63 +1,64 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { supabase } from '../db/supabase';
+import React, { useEffect, useState } from 'react'
+import { View, Text, StyleSheet, Pressable, ScrollView, Alert } from 'react-native'
+import { Link } from 'expo-router'
+import { supabase } from '../lib/supabase'
 
 export default function Index() {
-  const [latestPosts, setLatestPosts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const navigation = useNavigation();
+  const [latestPosts, setLatestPosts] = useState<any[]>([])
+  const [categories, setCategories] = useState<string[]>([])
 
   useEffect(() => {
-    fetchLatestPosts();
-    fetchCategories();
-  }, []);
+    fetchLatestPosts()
+    fetchCategories()
+  }, [])
 
   const fetchLatestPosts = async () => {
     const { data, error } = await supabase
       .from('Report')
       .select('*')
       .order('REP_created_at', { ascending: false })
-      .limit(5);
-
-    if (error) console.error(error);
+      .limit(5)
+    if (error) Alert.alert(error.message)
     else {
-      setLatestPosts(data);
+      setLatestPosts(data)
     }
-  };
+  }
 
   const fetchCategories = async () => {
     const { data, error } = await supabase
       .from('Base')
-      .select('*');
-    if (error) console.error(error);
-    else setCategories(data.map((cat: any) => cat));
-  };
+      .select('*')
+    console.log(data)
+    if (error) Alert.alert(error.message)
+    else setCategories(data)
+  }
 
-  const renderPost = ({ item }: { item: any }) => {
+  const renderPost = (item: any) => {
     return (
-      <TouchableOpacity
+      <Link
+        href={{
+          pathname: '/reports/[id]',
+          params: { id: item.REP_id }
+        }}
         style={styles.postItem}
-        onPress={() => navigation.navigate('oneReport', { post: item })}
+        asChild
+        key={item.REP_id}
       >
-        <Text style={styles.postTitle}>{item.REP_libelle}</Text>
-        <Text style={styles.postDate}>{new Date(item.REP_created_at).toLocaleDateString()}</Text>
-      </TouchableOpacity>
-    );
-  };
+        <Pressable>
+          <Text style={styles.postTitle}>{item.REP_libelle}</Text>
+          <Text style={styles.postDate}>{new Date(item.REP_created_at).toLocaleDateString()}</Text>
+        </Pressable>
+      </Link>
+    )
+  }
   
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Welcome to the Blog!</Text>
+    <ScrollView style={styles.container}>
 
       <Text style={styles.sectionTitle}>Latest Posts</Text>
-      <FlatList
-        data={latestPosts}
-        renderItem={renderPost}
-        keyExtractor={(item) => item.REP_id}
-        contentContainerStyle={styles.listContainer}
-      />
+      
+      {latestPosts.map((item: any)=> renderPost(item))}
 
       <Text style={styles.sectionTitle}>Categories</Text>
       <View style={styles.categoriesContainer}>
@@ -67,8 +68,8 @@ export default function Index() {
           </Text>
         ))}
       </View>
-    </View>
-  );
+    </ScrollView>
+  )
 }
 
 const styles = StyleSheet.create({
@@ -130,4 +131,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-});
+})

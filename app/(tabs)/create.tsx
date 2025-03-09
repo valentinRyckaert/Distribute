@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { supabase } from '../db/supabase';
+import { supabase } from '../lib/supabase';
 
 export default function Create() {
   const [title, setTitle] = useState('');
