@@ -22,22 +22,13 @@ export default function RootLayout() {
     })
   }, [])
 
-  let firstView: any
-
   if(!session) {
-    firstView = (
+    return (
       <View>
         <Auth />
       </View>
     )
   } else {
-    firstView = (   
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    )
-
       return (
       <>
         <View style={{flexDirection:'row'}}>
@@ -51,7 +42,10 @@ export default function RootLayout() {
             </TouchableOpacity>
           </View>
         </View> 
-        {firstView}
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
       </>
     )
 
