@@ -1,12 +1,13 @@
 import React, { useState } from 'react'
 import { Alert, StyleSheet, View } from 'react-native'
 import { supabase } from '../lib/supabase'
-import { Button, Input } from '@rneui/themed'
+import { Button, Input, Text } from '@rneui/themed'
 
 export default function Auth() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
 
   async function signInWithEmail() {
     setLoading(true)
@@ -15,8 +16,11 @@ export default function Auth() {
       password: password,
     })
 
-    if (error) Alert.alert(error.message)
-    setLoading(false)
+    if (error) {
+      Alert.alert(error.message)
+      setLoading(false)
+      setErrorMessage("Login Failed")
+    }
   }
 
   return (
@@ -45,6 +49,7 @@ export default function Auth() {
       <View style={[styles.verticallySpaced, styles.mt20]}>
         <Button title="Sign in" disabled={loading} onPress={() => signInWithEmail()} />
       </View>
+      <Text>{errorMessage}</Text>
     </View>
   )
 }
