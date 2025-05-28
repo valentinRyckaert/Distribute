@@ -30,6 +30,16 @@ export default function TabLayout() {
             }}
           />
           <Tabs.Screen
+            name="create"
+            options={{
+              headerShown: false,
+              title: 'New',
+              tabBarIcon: ({ color }) => (
+                <Entypo name="new-message" color={color} size={24} />
+              ),
+            }}
+          />
+          <Tabs.Screen
             name="search"
             options={{
               headerShown: false,
@@ -47,12 +57,6 @@ export default function TabLayout() {
               tabBarIcon: ({ color }) => (
                 <MaterialIcons name="account-circle" color={color} size={24} />
               ),
-            }}
-          />
-          <Tabs.Screen
-            name="create"
-            options={{
-              href: null,
             }}
           />
         </Tabs>

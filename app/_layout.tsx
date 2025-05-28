@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router'
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native'
 import Entypo from '@expo/vector-icons/Entypo'
 import Feather from '@expo/vector-icons/Feather'
 import 'react-native-url-polyfill/auto'
@@ -31,17 +31,7 @@ export default function RootLayout() {
   } else {
       return (
       <>
-        <View style={{flexDirection:'row'}}>
-          <Text style={styles.title}>Distribute</Text>
-          <View style={{flexDirection:'row'}}>
-            <TouchableOpacity>
-              <Entypo style={styles.right} name="new-message" size={24} color="#4110c7" />
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <Feather style={styles.right} name="settings" size={24} color="#4110c7" />
-            </TouchableOpacity>
-          </View>
-        </View> 
+        <Text style={styles.title}>Distribute</Text>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
@@ -54,13 +44,8 @@ export default function RootLayout() {
 
 
 const styles = StyleSheet.create({
-
   title: {
     fontSize: 40,
     margin: 4
-  },
-
-  right: {
-    textAlign: "right"
   }
 })
