@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Entypo from '@expo/vector-icons/Entypo';
+import AntDesign from '@expo/vector-icons/AntDesign';
 import React, { useState } from 'react';
 
 export default function TabLayout() {
@@ -26,7 +27,36 @@ export default function TabLayout() {
               tabBarIcon: () => (
                 <FontAwesome5 name="readme" size={24} color="#4110c7" />
               ),
-              href: '/reports/[id]',
+              headerShown: false
+            }}
+        />
+        <Tabs.Screen
+            name="[id]/update"
+            options={{
+              title: 'edit',
+              tabBarIcon: () => (
+                <AntDesign name="edit" size={24} color="#4110c7" />
+              ),
+              headerShown: false
+            }}
+        />
+        <Tabs.Screen
+            name="[id]/delete"
+            options={{
+              title: 'delete',
+              tabBarIcon: () => (
+                <AntDesign name="delete" size={24} color="#4110c7" />
+              ),
+              headerShown: false
+            }}
+        />
+        <Tabs.Screen
+            name="[id]/validate"
+            options={{
+              title: 'validate',
+              tabBarIcon: () => (
+                <FontAwesome5 name="readme" size={24} color="#4110c7" />
+              ),
               headerShown: false
             }}
         />
