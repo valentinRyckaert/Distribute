@@ -31,26 +31,6 @@ export default function TabLayout() {
             }}
         />
         <Tabs.Screen
-            name="[id]/update"
-            options={{
-              title: 'edit',
-              tabBarIcon: () => (
-                <AntDesign name="edit" size={24} color="#4110c7" />
-              ),
-              headerShown: false
-            }}
-        />
-        <Tabs.Screen
-            name="[id]/delete"
-            options={{
-              title: 'delete',
-              tabBarIcon: () => (
-                <AntDesign name="delete" size={24} color="#4110c7" />
-              ),
-              headerShown: false
-            }}
-        />
-        <Tabs.Screen
             name="[id]/validate"
             options={{
               title: 'validate',
