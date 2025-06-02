@@ -1,6 +1,5 @@
 import { Tabs } from 'expo-router';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import Entypo from '@expo/vector-icons/Entypo';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import React, { useState } from 'react';
 
@@ -23,9 +22,9 @@ export default function TabLayout() {
         <Tabs.Screen
             name="[id]/index"
             options={{
-              title: 'read',
-              tabBarIcon: () => (
-                <FontAwesome5 name="readme" size={24} color="#4110c7" />
+              title: 'Report',
+              tabBarIcon: ({color, focused}) => (
+                <Ionicons name={focused ? 'reader' : 'reader-outline'} size={24} color={color} />
               ),
               headerShown: false
             }}
@@ -33,9 +32,9 @@ export default function TabLayout() {
         <Tabs.Screen
             name="[id]/validate"
             options={{
-              title: 'validate',
-              tabBarIcon: () => (
-                <FontAwesome5 name="readme" size={24} color="#4110c7" />
+              title: 'Solution',
+              tabBarIcon: ({color, focused}) => (
+                <AntDesign name={focused ? 'checkcircle' : 'checkcircleo'} size={24} color={color} />
               ),
               headerShown: false
             }}
