@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, Pressable, ScrollView, Alert } from 'react-native'
-import { Link } from 'expo-router'
+import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native'
 import { supabase } from '../lib/supabase'
+import { Report, Category } from '../lib/types';
+import RenderReport from '../components/RenderReport'
 
 export default function Index() {
-  const [latestPosts, setLatestPosts] = useState<any[]>([])
-  const [categories, setCategories] = useState<string[]>([])
+  const [latestPosts, setLatestPosts] = useState<Report[]>([])
+  const [baseList, setBaseList] = useState<Category[]>([])
 
   useEffect(() => {
     fetchLatestPosts()
@@ -30,39 +31,19 @@ export default function Index() {
       .select('*')
     console.log(data)
     if (error) Alert.alert(error.message)
-    else setCategories(data)
+    else setBaseList(data)
   }
-
-  const renderPost = (item: any) => {
-    return (
-      <Link
-        href={{
-          pathname: '/reports/[id]',
-          params: { id: item.REP_id }
-        }}
-        style={styles.postItem}
-        asChild
-        key={item.REP_id}
-      >
-        <Pressable>
-          <Text style={styles.postTitle}>{item.REP_libelle}</Text>
-          <Text style={styles.postDate}>{new Date(item.REP_created_at).toLocaleDateString()}</Text>
-        </Pressable>
-      </Link>
-    )
-  }
-  
 
   return (
     <ScrollView style={styles.container}>
 
       <Text style={styles.sectionTitle}>Latest Posts</Text>
       
-      {latestPosts.map((item: any)=> renderPost(item))}
+      {latestPosts.map((item: Report)=> <RenderReport item={item}/>)}
 
       <Text style={styles.sectionTitle}>Categories</Text>
       <View style={styles.categoriesContainer}>
-        {categories.map((object: any) => (
+        {baseList.map((object: Category) => (
           <Text key={object.BAS_id} style={styles.categoryItem}>
             {object.BAS_libelle}
           </Text>

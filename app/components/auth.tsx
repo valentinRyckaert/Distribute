@@ -4,10 +4,10 @@ import { supabase } from '../lib/supabase'
 import { Button, Input, Text } from '@rneui/themed'
 
 export default function Auth() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("")
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(false)
+  const [errorMessage, setErrorMessage] = useState<string>("")
 
   async function signInWithEmail() {
     setLoading(true)

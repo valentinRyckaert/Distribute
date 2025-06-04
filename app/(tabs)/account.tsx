@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Text, View, StyleSheet, Alert, TextInput, ScrollView, TouchableOpacity, Picker } from 'react-native';
+import { Button, Text, View, StyleSheet, Alert, TextInput, ScrollView, Picker } from 'react-native';
 import { supabase } from '../lib/supabase';
-import CreateForm from '../components/ReportForm'
+import ReportForm from '../components/ReportForm';
+import { Report } from '../lib/types';
 
 export default function Account() {
-  const [user, setUser] = useState(null);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [updateMessage, setUpdateMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [reports, setReports] = useState([]);
-  const [expandedReportId, setExpandedReportId] = useState(null);
-  const [reportToEdit, setReportToEdit] = useState(null);
-  const [reportToDelete, setReportToDelete] = useState(null);
+  const [user, setUser] = useState<any>(null);
+  const [currentPassword, setCurrentPassword] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [updateMessage, setUpdateMessage] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [reports, setReports] = useState<Report[]>([]);
+  const [expandedReportId, setExpandedReportId] = useState<number | null>(null);
+  const [reportToEdit, setReportToEdit] = useState<Report | null>(null);
+  const [reportToDelete, setReportToDelete] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -27,7 +28,7 @@ export default function Account() {
     fetchUser();
   }, []);
 
-  const fetchReports = async (userId) => {
+  const fetchReports = async (userId: string) => {
     const { data, error } = await supabase
       .from('Report')
       .select('*')
@@ -40,7 +41,7 @@ export default function Account() {
     }
   };
 
-  const handleDelete = async (reportId) => {
+  const handleDelete = async (reportId: number) => {
     const { error } = await supabase
       .from('Report')
       .delete()
@@ -55,21 +56,21 @@ export default function Account() {
     }
   };
 
-  async function signOut() {
+  const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       setErrorMessage(`Error: ${error.message}`);
     }
-  }
+  };
 
-  async function updatePassword() {
+  const updatePassword = async () => {
     if (newPassword !== confirmPassword) {
       setErrorMessage('Error: Les mots de passe ne correspondent pas.');
       return;
     }
 
     const { error } = await supabase.auth.signInWithPassword({
-      email: user.email,
+      email: user?.email || '',
       password: currentPassword,
     });
 
@@ -87,7 +88,7 @@ export default function Account() {
       setNewPassword('');
       setConfirmPassword('');
     }
-  }
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -155,7 +156,7 @@ export default function Account() {
           )}
           {expandedReportId === report.REP_id && (
             <View style={styles.editForm}>
-              <CreateForm currentReport={reportToEdit}></CreateForm>
+              <ReportForm currentReport={reportToEdit ? reportToEdit : null} />
             </View>
           )}
         </View>

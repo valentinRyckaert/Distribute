@@ -6,7 +6,7 @@ export default function Create() {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Create a New Report</Text>
-      <ReportForm></ReportForm>
+      <ReportForm currentReport={null} />
     </ScrollView>
   );
 }
