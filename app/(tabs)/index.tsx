@@ -29,7 +29,6 @@ export default function Index() {
     const { data, error } = await supabase
       .from('Base')
       .select('*')
-    console.log(data)
     if (error) Alert.alert(error.message)
     else setBaseList(data)
   }

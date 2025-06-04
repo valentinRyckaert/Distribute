@@ -4,13 +4,11 @@ import { supabase } from '../lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { Report, Base, Asset, AssetType, Tag } from '../lib/types';
 
-
 interface ReportFormProps {
   currentReport: Report | null;
 }
 
 export default function ReportForm({ currentReport }: ReportFormProps) {
-
   const [title, setTitle] = useState(currentReport ? currentReport.REP_libelle : '');
   const [content, setContent] = useState(currentReport ? currentReport.REP_content : '');
   const [solution, setSolution] = useState(currentReport ? currentReport.REP_solution : '');
@@ -23,9 +21,9 @@ export default function ReportForm({ currentReport }: ReportFormProps) {
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [tagIdForPicker, setTagIdForPicker] = useState<Tag | ''>('');
-  const [newAsset, setNewAsset] = useState('');
-  const [newBase, setNewBase] = useState('');
-  const [newAssetType, setNewAssetType] = useState('');
+  const [newAsset, setNewAsset] = useState<Asset | ''>('');
+  const [newBase, setNewBase] = useState<Base | ''>('');
+  const [newAssetType, setNewAssetType] = useState<AssetType | ''>('');
 
   useEffect(() => {
     const fetchAssets = async () => {
@@ -69,6 +67,26 @@ export default function ReportForm({ currentReport }: ReportFormProps) {
     fetchAssetTypes();
     fetchTags();
   }, []);
+
+  useEffect(() => {
+    if (currentReport) {
+      const fetchReportTags = async () => {
+        const { data, error } = await supabase
+          .from('ReportHasTag')
+          .select('TAG_id')
+          .eq('REP_id', currentReport.REP_id);
+
+        if (error) {
+          console.error(error);
+        } else {
+          const tagIds = data.map((tag: { TAG_id: number }) => tag.TAG_id);
+          setSelectedTags(tagIds);
+        }
+      };
+
+      fetchReportTags();
+    }
+  }, [currentReport]);
 
   const handleSubmit = async () => {
     if (!title || !content) {
@@ -120,7 +138,31 @@ export default function ReportForm({ currentReport }: ReportFormProps) {
     if (error) {
       Alert.alert('Error', error.message);
     } else {
-      Alert.alert('Success', 'Report created successfully!');
+      // Handle tags association
+      const handleTags = async () => {
+        // First, remove all existing tag associations for this report
+        const { error: deleteError } = await supabase
+          .from('ReportHasTag')
+          .delete()
+          .eq('REP_id', reportID);
+
+        if (deleteError) {
+          console.error(deleteError);
+        }
+
+        // Then, insert the new tag associations
+        const tagInsertPromises = selectedTags.map(tagId =>
+          supabase
+            .from('ReportHasTag')
+            .insert([{ REP_id: reportID, TAG_id: tagId }])
+        );
+
+        await Promise.all(tagInsertPromises);
+      };
+
+      await handleTags();
+
+      Alert.alert('Success', 'Report updated successfully!');
       setTitle('');
       setContent('');
       setSolution('');
@@ -133,7 +175,9 @@ export default function ReportForm({ currentReport }: ReportFormProps) {
   };
 
   const handleAddTag = (tagId: string) => {
-    setSelectedTags(prev => [...prev, parseInt(tagId)]);
+    if (tagId && !selectedTags.includes(parseInt(tagId))) {
+      setSelectedTags(prev => [...prev, parseInt(tagId)]);
+    }
     setTagIdForPicker('');
   };
 
@@ -232,16 +276,16 @@ export default function ReportForm({ currentReport }: ReportFormProps) {
       <Picker
         selectedValue={tagIdForPicker}
         style={styles.picker}
-        onValueChange={(itemValue: string) => handleAddTag(itemValue)}>
-        <Picker.Item label="Select a Tag" value={null} />
+        onValueChange={(itemValue) => handleAddTag(itemValue)}>
+        <Picker.Item label="Select a Tag" value="" />
         {tags.map((tag) => (
           <Picker.Item key={tag.TAG_id} label={tag.TAG_libelle} value={tag.TAG_id} />
         ))}
       </Picker>
 
       <View style={styles.selectedTagsContainer}>
-        {selectedTags.map((tagId: number) => {
-          const tag: Tag | undefined = tags.find(t => t.TAG_id === tagId)
+        {selectedTags.map((tagId) => {
+          const tag = tags.find(t => t.TAG_id === tagId);
           return (
             <View key={tagId} style={styles.selectedTag}>
               <Ionicons name="close" size={20} color="black" onPress={() => handleRemoveTag(tagId)} />

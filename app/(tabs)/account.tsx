@@ -65,7 +65,7 @@ export default function Account() {
 
   const updatePassword = async () => {
     if (newPassword !== confirmPassword) {
-      setErrorMessage('Error: Les mots de passe ne correspondent pas.');
+      setErrorMessage('Error: passwords not corresponding');
       return;
     }
 
@@ -75,15 +75,15 @@ export default function Account() {
     });
 
     if (error) {
-      setErrorMessage('Error: Mot de passe actuel incorrect.');
+      setErrorMessage('Error: current password incorrect');
       return;
     }
 
     const { data, error: updateError } = await supabase.auth.updateUser({ password: newPassword });
     if (updateError) {
-      setErrorMessage('Error: Erreur lors de la mise à jour du mot de passe.');
+      setErrorMessage('Error: error during password update');
     } else {
-      setUpdateMessage('Mot de passe mis à jour avec succès !');
+      setUpdateMessage('Passsword updated!');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -105,27 +105,27 @@ export default function Account() {
       )}
 
       <TextInput
-        placeholder="Mot de passe actuel"
+        placeholder="Current password"
         value={currentPassword}
         onChangeText={setCurrentPassword}
         secureTextEntry
         style={styles.input}
       />
       <TextInput
-        placeholder="Nouveau mot de passe"
+        placeholder="New password"
         value={newPassword}
         onChangeText={setNewPassword}
         secureTextEntry
         style={styles.input}
       />
       <TextInput
-        placeholder="Confirmer le nouveau mot de passe"
+        placeholder="Password confirmation"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         secureTextEntry
         style={styles.input}
       />
-      <Button onPress={updatePassword} title="Mettre à jour le mot de passe" />
+      <Button onPress={updatePassword} title="Update Password" />
       {updateMessage ? <Text style={styles.updateMessage}>{updateMessage}</Text> : null}
       {errorMessage ? <Text style={styles.errorMessage}>{errorMessage}</Text> : null}
 
@@ -135,7 +135,7 @@ export default function Account() {
           <Text style={styles.reportTitle}>{report.REP_libelle}</Text>
           <View style={styles.buttonContainer}>
             <Button
-              title={expandedReportId === report.REP_id ? "Annuler" : "Modifier"}
+              title={expandedReportId === report.REP_id ? "Cancel" : "Update"}
               onPress={() => {
                 if (expandedReportId === report.REP_id) {
                   setExpandedReportId(null);
