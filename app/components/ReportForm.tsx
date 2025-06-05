@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Text, TextInput, TouchableOpacity, StyleSheet, Alert, Picker, View } from 'react-native';
-import { supabase } from '../lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
-import { Report, Base, Asset, AssetType, Tag } from '../lib/types';
+import { Picker } from '@react-native-picker/picker';
+import React, { useEffect, useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { supabase } from '../lib/supabase';
+import { Asset, AssetType, Base, Report, Tag } from '../lib/types';
 
 interface ReportFormProps {
   currentReport: Report | null;
@@ -98,12 +99,14 @@ export default function ReportForm({ currentReport }: ReportFormProps) {
     const userId = user?.id;
 
     const lastReport: Report | any = currentReport ? [currentReport] : (await supabase
-      .from('Report')
-      .select('*')
-      .order('REP_created_at', { ascending: false })
-      .limit(1)).data ?? [];
+    .from('Report')
+    .select('REP_id')
+    .order('REP_id', { ascending: false })
+    .limit(1)).data ?? [];
 
     const reportID: number = currentReport ? currentReport.REP_id : lastReport[0]?.REP_id + 1 || 1;
+
+    console.log(reportID)
 
     const { error } = currentReport
       ? await supabase

@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native'
-import { supabase } from '../lib/supabase'
-import { Report, Category } from '../lib/types';
-import RenderReport from '../components/RenderReport'
+import React, { useEffect, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import RenderReport from '../components/RenderReport';
+import { supabase } from '../lib/supabase';
+import { Category, Report } from '../lib/types';
 
 export default function Index() {
   const [latestPosts, setLatestPosts] = useState<Report[]>([])
@@ -34,21 +34,23 @@ export default function Index() {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    
+      <ScrollView style={styles.container}>
 
-      <Text style={styles.sectionTitle}>Latest Posts</Text>
-      
-      {latestPosts.map((item: Report)=> <RenderReport item={item}/>)}
+        <Text style={styles.sectionTitle}>Latest Posts</Text>
+        
+        {latestPosts.map((item: Report)=> <RenderReport item={item}/>)}
 
-      <Text style={styles.sectionTitle}>Categories</Text>
-      <View style={styles.categoriesContainer}>
-        {baseList.map((object: Category) => (
-          <Text key={object.BAS_id} style={styles.categoryItem}>
-            {object.BAS_libelle}
-          </Text>
-        ))}
-      </View>
-    </ScrollView>
+        <Text style={styles.sectionTitle}>Categories</Text>
+        <View style={styles.categoriesContainer}>
+          {baseList.map((object: Category) => (
+            <Text key={object.BAS_id} style={styles.categoryItem}>
+              {object.BAS_libelle}
+            </Text>
+          ))}
+        </View>
+      </ScrollView>
+    
   )
 }
 

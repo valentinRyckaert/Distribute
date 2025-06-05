@@ -1,13 +1,15 @@
-import { Text, StyleSheet, ScrollView } from 'react-native';
+import { ScrollView, StyleSheet, Text } from 'react-native';
 import ReportForm from '../components/ReportForm';
 
 export default function Create() {
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Create a New Report</Text>
-      <ReportForm currentReport={null} />
-    </ScrollView>
+    
+      <ScrollView style={styles.container}>
+        <Text style={styles.header}>Create a New Report</Text>
+        <ReportForm currentReport={null} />
+      </ScrollView>
+    
   );
 }
 

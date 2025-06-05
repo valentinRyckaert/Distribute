@@ -1,13 +1,9 @@
-import { Stack } from 'expo-router'
-import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native'
-import Entypo from '@expo/vector-icons/Entypo'
-import Feather from '@expo/vector-icons/Feather'
-import 'react-native-url-polyfill/auto'
-import { useState, useEffect } from 'react'
-import { supabase } from './lib/supabase'
-import Auth from './components/auth'
 import { Session } from '@supabase/supabase-js'
+import { Stack } from 'expo-router'
+import React, { useEffect, useState } from 'react'
+import { StyleSheet, Text, View } from 'react-native'
+import Auth from './components/auth'
+import { supabase } from './lib/supabase'
 
 export default function RootLayout() {
   const [session, setSession] = useState<Session | null>(null)

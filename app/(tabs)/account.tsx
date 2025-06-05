@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Text, View, StyleSheet, Alert, TextInput, ScrollView, Picker } from 'react-native';
-import { supabase } from '../lib/supabase';
+import { Alert, Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import ReportForm from '../components/ReportForm';
+import { supabase } from '../lib/supabase';
 import { Report } from '../lib/types';
 
 export default function Account() {
@@ -91,78 +91,80 @@ export default function Account() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Your Account</Text>
-      {user ? (
-        <View style={styles.userInfo}>
-          <Text style={styles.label}>UID: {user.id}</Text>
-          <Text style={styles.label}>Email: {user.email}</Text>
-          <Text style={styles.label}>Created At: {new Date(user.created_at).toLocaleString()}</Text>
-          <Text style={styles.label}>Last Sign In: {new Date(user.last_sign_in_at).toLocaleString()}</Text>
-        </View>
-      ) : (
-        <Text style={styles.label}>Loading user information...</Text>
-      )}
-
-      <TextInput
-        placeholder="Current password"
-        value={currentPassword}
-        onChangeText={setCurrentPassword}
-        secureTextEntry
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="New password"
-        value={newPassword}
-        onChangeText={setNewPassword}
-        secureTextEntry
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Password confirmation"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry
-        style={styles.input}
-      />
-      <Button onPress={updatePassword} title="Update Password" />
-      {updateMessage ? <Text style={styles.updateMessage}>{updateMessage}</Text> : null}
-      {errorMessage ? <Text style={styles.errorMessage}>{errorMessage}</Text> : null}
-
-      <Text style={styles.subtitle}>Your Reports</Text>
-      {reports.map((report) => (
-        <View key={report.REP_id} style={styles.reportContainer}>
-          <Text style={styles.reportTitle}>{report.REP_libelle}</Text>
-          <View style={styles.buttonContainer}>
-            <Button
-              title={expandedReportId === report.REP_id ? "Cancel" : "Update"}
-              onPress={() => {
-                if (expandedReportId === report.REP_id) {
-                  setExpandedReportId(null);
-                } else {
-                  setExpandedReportId(report.REP_id);
-                  setReportToEdit(report);
-                }
-              }}
-              color={expandedReportId === report.REP_id ? "grey" : undefined}
-            />
-            <Button title="Delete" onPress={() => setReportToDelete(report.REP_id)} color="#FF5733" />
+    
+      <ScrollView style={styles.container}>
+        <Text style={styles.title}>Your Account</Text>
+        {user ? (
+          <View style={styles.userInfo}>
+            <Text style={styles.label}>UID: {user.id}</Text>
+            <Text style={styles.label}>Email: {user.email}</Text>
+            <Text style={styles.label}>Created At: {new Date(user.created_at).toLocaleString()}</Text>
+            <Text style={styles.label}>Last Sign In: {new Date(user.last_sign_in_at).toLocaleString()}</Text>
           </View>
-          {reportToDelete === report.REP_id && (
-            <View>
-              <Text style={styles.deleteConfirmation}>Are you sure you want to delete this report?</Text>
-              <Button title="Confirm Delete" onPress={() => handleDelete(report.REP_id)} color="#FF0000" />
+        ) : (
+          <Text style={styles.label}>Loading user information...</Text>
+        )}
+
+        <TextInput
+          placeholder="Current password"
+          value={currentPassword}
+          onChangeText={setCurrentPassword}
+          secureTextEntry
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="New password"
+          value={newPassword}
+          onChangeText={setNewPassword}
+          secureTextEntry
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Password confirmation"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry
+          style={styles.input}
+        />
+        <Button onPress={updatePassword} title="Update Password" />
+        {updateMessage ? <Text style={styles.updateMessage}>{updateMessage}</Text> : null}
+        {errorMessage ? <Text style={styles.errorMessage}>{errorMessage}</Text> : null}
+
+        <Text style={styles.subtitle}>Your Reports</Text>
+        {reports.map((report) => (
+          <View key={report.REP_id} style={styles.reportContainer}>
+            <Text style={styles.reportTitle}>{report.REP_libelle}</Text>
+            <View style={styles.buttonContainer}>
+              <Button
+                title={expandedReportId === report.REP_id ? "Cancel" : "Update"}
+                onPress={() => {
+                  if (expandedReportId === report.REP_id) {
+                    setExpandedReportId(null);
+                  } else {
+                    setExpandedReportId(report.REP_id);
+                    setReportToEdit(report);
+                  }
+                }}
+                color={expandedReportId === report.REP_id ? "grey" : undefined}
+              />
+              <Button title="Delete" onPress={() => setReportToDelete(report.REP_id)} color="#FF5733" />
             </View>
-          )}
-          {expandedReportId === report.REP_id && (
-            <View style={styles.editForm}>
-              <ReportForm currentReport={reportToEdit ? reportToEdit : null} />
-            </View>
-          )}
-        </View>
-      ))}
-      <Button onPress={signOut} title="Sign Out" color="#FF5733" />
-    </ScrollView>
+            {reportToDelete === report.REP_id && (
+              <View>
+                <Text style={styles.deleteConfirmation}>Are you sure you want to delete this report?</Text>
+                <Button title="Confirm Delete" onPress={() => handleDelete(report.REP_id)} color="#FF0000" />
+              </View>
+            )}
+            {expandedReportId === report.REP_id && (
+              <View style={styles.editForm}>
+                <ReportForm currentReport={reportToEdit ? reportToEdit : null} />
+              </View>
+            )}
+          </View>
+        ))}
+        <Button onPress={signOut} title="Sign Out" color="#FF5733" />
+      </ScrollView>
+    
   );
 }
 

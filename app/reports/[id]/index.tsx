@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { supabase } from '@/app/lib/supabase';
 import { useLocalSearchParams } from 'expo-router';
-import { Report, Base, Asset, AssetType, Tag } from '../../lib/types';
+import React, { useEffect, useState } from 'react';
+import { Button, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Asset, AssetType, Base, Report, Tag } from '../../lib/types';
 
 export default function Index() {
   const [post, setPost] = useState<Report | null>(null);
@@ -10,12 +10,24 @@ export default function Index() {
   const [asset, setAsset] = useState<Asset | null>(null);
   const [assetType, setAssetType] = useState<AssetType | null>(null);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [error, setError] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const local = useLocalSearchParams();
 
   useEffect(() => {
     fetchPost();
+    fetchUserRole();
   }, []);
+
+  const fetchUserRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+          setIsAdmin(user.role === "admin");
+      } else {
+          setError("User not logged in");
+      }
+  };
 
   const fetchPost = async () => {
     const { data, error } = await supabase
@@ -28,7 +40,6 @@ export default function Index() {
     } else {
       const reportData = data[0];
       setPost(reportData);
-      localStorage.setItem("currentReport", JSON.stringify(reportData));
 
       if (reportData.BAS_id) {
         const { data: baseData, error: baseError } = await supabase
@@ -73,34 +84,80 @@ export default function Index() {
     }
   };
 
+
+  const handleValidationSubmit = async () => {
+      const { error } = await supabase
+          .from('Report')
+          .update({ REP_is_solution_validated: !post?.REP_is_solution_validated })
+          .eq('REP_id', post?.REP_id);
+
+      if (error) {
+          console.error(error);
+          setError("Failed to update validation status.");
+      } else {
+          alert("Validation status updated successfully!");
+      }
+  };
+
   if (!post) {
     return (
       <View style={styles.container}>
         <Text>Loading...</Text>
       </View>
+      
     );
   }
 
+  if (error) {
+      return (
+          <View style={styles.container}>
+              <Text style={styles.error}>{error}</Text>
+          </View>
+      );
+  }
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.title}>{post.REP_libelle}</Text>
-        <Text style={styles.content}>{post.REP_content}</Text>
-        <Text style={styles.date}>Created at: {new Date(post.REP_created_at).toLocaleString()}</Text>
+    
+      <ScrollView style={styles.container}>
+        <View style={styles.card}>
+          <Text style={styles.title}>{post.REP_libelle}</Text>
+          <Text style={styles.content}>{post.REP_content}</Text>
+          <Text style={styles.date}>Created at: {new Date(post.REP_created_at).toLocaleString()}</Text>
 
-        {base && <Text style={styles.base}>Base: {base.BAS_libelle}</Text>}
-        {asset && <Text style={styles.asset}>Asset: {asset.AS_name}</Text>}
-        {assetType && <Text style={styles.assetType}>Asset Type: {assetType.AT_libelle}</Text>}
+          {base && <Text style={styles.base}>Base: {base.BAS_libelle}</Text>}
+          {asset && <Text style={styles.asset}>Asset: {asset.AS_name}</Text>}
+          {assetType && <Text style={styles.assetType}>Asset Type: {assetType.AT_libelle}</Text>}
 
-        <View style={styles.tagsContainer}>
-          {tags.map((tag) => (
-            <View key={tag.TAG_id} style={styles.tag}>
-              <Text style={styles.tagText}>#{tag.TAG_libelle}</Text>
-            </View>
-          ))}
+          <View style={styles.tagsContainer}>
+            {tags.map((tag) => (
+              <View key={tag.TAG_id} style={styles.tag}>
+                <Text style={styles.tagText}>#{tag.TAG_libelle}</Text>
+              </View>
+            ))}
+          </View>
         </View>
-      </View>
-    </ScrollView>
+        <View style={styles.container}>
+            <Text style={styles.title}>Report Solution</Text>
+            <View style={styles.solutionContainer}>
+                <Text style={styles.solutionText}>
+                    {post.REP_solution || "This report has currently no solution. If you want to propose one, please contact the creator of this report."}
+                </Text>
+                <Text style={styles.validationStatus}>
+                    {post.REP_is_solution_validated ? "This solution has been validated." : "This solution has not been validated yet."}
+                </Text>
+            </View>
+            {isAdmin && (
+                <View style={styles.formContainer}>
+                    <Text style={styles.formTitle}>Validate Solution</Text>
+                    <View style={styles.switchContainer}>
+                        <Text>{post.REP_is_solution_validated ? "Validated" : "Not Validated"}</Text>
+                    </View>
+                    <Button title="Change value" onPress={handleValidationSubmit} />
+                </View>
+            )}
+        </View>
+      </ScrollView>
+    
   );
 }
 
@@ -172,4 +229,50 @@ const styles = StyleSheet.create({
     color: '#007BFF',
     fontSize: 14,
   },
+      solutionContainer: {
+        backgroundColor: '#fff',
+        padding: 15,
+        borderRadius: 5,
+        marginBottom: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 1,
+        elevation: 2,
+    },
+    solutionText: {
+        fontSize: 16,
+        marginBottom: 10,
+    },
+    validationStatus: {
+        fontSize: 16,
+        fontStyle: 'italic',
+        color: '#555',
+    },
+    formContainer: {
+        backgroundColor: '#fff',
+        padding: 15,
+        borderRadius: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 1,
+        elevation: 2,
+    },
+    formTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    switchContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    error: {
+        color: 'red',
+        textAlign: 'center',
+        marginTop: 20,
+    },
 });

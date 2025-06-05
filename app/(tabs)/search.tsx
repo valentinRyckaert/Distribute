@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { View, TextInput, FlatList, Text, StyleSheet, Picker } from 'react-native';
-import { supabase } from '../lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
-import { Report, Category, Asset, AssetType, Tag } from '../lib/types';
+import { Picker } from '@react-native-picker/picker';
+import React, { useEffect, useState } from 'react';
+import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import RenderReport from '../components/RenderReport';
+import { supabase } from '../lib/supabase';
+import { Asset, AssetType, Category, Report, Tag } from '../lib/types';
 
 interface SelectedOption {
   id: number;
@@ -135,6 +136,7 @@ export default function Search() {
   };
 
   return (
+    
     <View style={styles.container}>
       <TextInput
         placeholder="Rechercher par nom"
@@ -201,6 +203,7 @@ export default function Search() {
         contentContainerStyle={styles.listContainer}
       />
     </View>
+    
   );
 }
 
