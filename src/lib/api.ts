@@ -1,3 +1,4 @@
+import type { PostgrestSingleResponse } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import type {
   Base,
@@ -15,9 +16,19 @@ const REPORT_WITH_TAGS = '*, Tag(*)'
  * Throws the Supabase error if there is one, otherwise returns the data.
  * @throws {Error} the PostgREST or Auth error
  */
-function unwrap<T>({ data, error }: { data: T | null; error: Error | null }): T {
-  if (error) throw error
-  return data as T
+function unwrap<T>(response: PostgrestSingleResponse<T>): T {
+  if (response.error) throw response.error
+  return response.data as T
+}
+
+/**
+ * Like `unwrap`, for queries that must return a row (`.single()` after a write).
+ * @throws {Error} when no row came back, e.g. the write was refused by RLS
+ */
+function unwrapRow<T>(response: PostgrestSingleResponse<T>): NonNullable<T> {
+  const data = unwrap(response)
+  if (data == null) throw new Error('Not found or not allowed')
+  return data
 }
 
 /** Fetches the most recent reports, newest first. */
@@ -87,33 +98,23 @@ export async function fetchUserReports(userId: string): Promise<ReportWithTags[]
   return unwrap(await supabase.from('Report').select(REPORT_WITH_TAGS).eq('user_id', userId))
 }
 
-/** Computes the next free report id from the highest existing one. */
-async function nextReportId(): Promise<number> {
-  const last = unwrap(
-    await supabase.from('Report').select('REP_id').order('REP_id', { ascending: false }).limit(1),
-  )
-  return (last[0]?.REP_id ?? 0) + 1
-}
-
 /**
  * Creates a report, or updates it when `id` is given, then replaces its tags.
+ * The author, creation date and validation are set by the database, never sent from here.
  * @returns the report id
  */
 export async function saveReport(input: ReportInput, id?: number): Promise<number> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
   const { tagIds, ...fields } = input
-  const row = {
-    ...fields,
-    REP_created_at: new Date().toISOString(),
-    REP_is_solution_validated: false,
-    user_id: user?.id,
+  let reportId: number
+  if (id) {
+    // .single() turns "0 rows changed" (not allowed by RLS) into an error.
+    unwrap(await supabase.from('Report').update(fields).eq('REP_id', id).select('REP_id').single())
+    reportId = id
+  } else {
+    reportId = unwrapRow(
+      await supabase.from('Report').insert(fields).select('REP_id').single(),
+    ).REP_id
   }
-
-  const reportId = id ?? (await nextReportId())
-  if (id) unwrap(await supabase.from('Report').update(row).eq('REP_id', id))
-  else unwrap(await supabase.from('Report').insert({ ...row, REP_id: reportId }))
 
   unwrap(await supabase.from('ReportHasTag').delete().eq('REP_id', reportId))
   if (tagIds.length > 0) {
@@ -126,15 +127,56 @@ export async function saveReport(input: ReportInput, id?: number): Promise<numbe
   return reportId
 }
 
+/** Id and label columns of each reference table. */
+const REFERENCE_COLUMNS = {
+  Base: ['BAS_id', 'BAS_libelle'],
+  Asset: ['AS_id', 'AS_name'],
+  AssetType: ['AT_id', 'AT_libelle'],
+  Tag: ['TAG_id', 'TAG_libelle'],
+} as const
+
+/** A table holding a list of labels: categories, assets, asset types or tags. */
+export type ReferenceTable = keyof typeof REFERENCE_COLUMNS
+
+/**
+ * Returns the id of the item with this label (case-insensitive), creating it if needed.
+ * @returns the item id
+ */
+export async function findOrCreateReferenceItem(
+  table: ReferenceTable,
+  label: string,
+): Promise<number> {
+  const [idColumn, labelColumn] = REFERENCE_COLUMNS[table]
+  const clean = label.trim()
+  const escaped = clean.replace(/[\\%_]/g, '\\$&')
+  const existing = unwrap(
+    await supabase.from(table).select(idColumn).ilike(labelColumn, escaped).maybeSingle(),
+  )
+  if (existing) return (existing as unknown as Record<string, number>)[idColumn]
+  const created = unwrapRow(
+    await supabase
+      .from(table)
+      .insert({ [labelColumn]: clean } as never) // the row matches `table`, TS cannot narrow the union
+      .select(idColumn)
+      .single(),
+  )
+  return (created as unknown as Record<string, number>)[idColumn]
+}
+
 /** Deletes a report; its tag links are removed by the database cascade. */
 export async function deleteReport(id: number): Promise<void> {
-  unwrap(await supabase.from('Report').delete().eq('REP_id', id))
+  unwrap(await supabase.from('Report').delete().eq('REP_id', id).select('REP_id').single())
 }
 
 /** Marks a report's solution as validated or not (admin only). */
 export async function setSolutionValidated(id: number, validated: boolean): Promise<void> {
   unwrap(
-    await supabase.from('Report').update({ REP_is_solution_validated: validated }).eq('REP_id', id),
+    await supabase
+      .from('Report')
+      .update({ REP_is_solution_validated: validated })
+      .eq('REP_id', id)
+      .select('REP_id')
+      .single(),
   )
 }
 

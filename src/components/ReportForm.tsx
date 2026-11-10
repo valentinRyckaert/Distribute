@@ -2,18 +2,21 @@ import { Ionicons } from '@expo/vector-icons'
 import { Picker } from '@react-native-picker/picker'
 import React, { useEffect, useState } from 'react'
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { fetchReferenceData, saveReport } from '@/src/lib/api'
+import { fetchReferenceData, findOrCreateReferenceItem, saveReport } from '@/src/lib/api'
 import type { ReferenceData, ReportWithTags } from '@/src/lib/types'
+import { validateReport } from '@/src/lib/validation'
 
 interface ReportFormProps {
   /** The report to edit, or null to create a new one. */
   currentReport: ReportWithTags | null
+  /** Called with the report id once it is saved. */
+  onSaved?: (reportId: number) => void
 }
 
 const EMPTY_REFERENCE_DATA: ReferenceData = { bases: [], assets: [], assetTypes: [], tags: [] }
 
 /** Form to create a report or edit an existing one, including its category, asset, type and tags. */
-export default function ReportForm({ currentReport }: ReportFormProps) {
+export default function ReportForm({ currentReport, onSaved }: ReportFormProps) {
   const [title, setTitle] = useState(currentReport?.REP_libelle ?? '')
   const [content, setContent] = useState(currentReport?.REP_content ?? '')
   const [solution, setSolution] = useState(currentReport?.REP_solution ?? '')
@@ -34,36 +37,45 @@ export default function ReportForm({ currentReport }: ReportFormProps) {
       .catch((error: Error) => Alert.alert('Error', error.message))
   }, [])
 
-  /** Validates the required fields, saves the report and resets the form. */
+  /** Validates the fields, creates the typed-in asset, category or type, then saves the report. */
   async function handleSubmit() {
-    if (!title || !content) {
-      Alert.alert('Error', 'Both title and content are required.')
+    const error = validateReport(title, content, solution)
+    if (error) {
+      Alert.alert('Error', error)
       return
     }
+    let reportId: number
     try {
-      await saveReport(
+      reportId = await saveReport(
         {
-          REP_libelle: title,
+          REP_libelle: title.trim(),
           REP_content: content,
           REP_solution: solution,
-          AS_id: assetId,
-          BAS_id: baseId,
-          AT_id: assetTypeId,
+          AS_id: newAsset.trim() ? await findOrCreateReferenceItem('Asset', newAsset) : assetId,
+          BAS_id: newBase.trim() ? await findOrCreateReferenceItem('Base', newBase) : baseId,
+          AT_id: newAssetType.trim()
+            ? await findOrCreateReferenceItem('AssetType', newAssetType)
+            : assetTypeId,
           tagIds: selectedTags,
         },
         currentReport?.REP_id,
       )
-    } catch (error) {
-      Alert.alert('Error', (error as Error).message)
+    } catch (err) {
+      Alert.alert('Error', (err as Error).message)
       return
     }
-    Alert.alert('Success', 'Report updated successfully!')
+    Alert.alert('Success', 'Report saved successfully!')
+    onSaved?.(reportId)
+    if (currentReport) return
     setTitle('')
     setContent('')
     setSolution('')
     setAssetId(null)
     setBaseId(null)
     setAssetTypeId(null)
+    setNewAsset('')
+    setNewBase('')
+    setNewAssetType('')
     setSelectedTags([])
   }
 
