@@ -280,7 +280,10 @@ isOneToOne: false
         to: "Report"
         isOneToOne: false
         isSetofReturn: true
-      } }
+      } },
+"unaccent_fr":
+{ Args: { "value": string }; Returns: string
+                           }
           }
           Enums: {
             [_ in never]: never
