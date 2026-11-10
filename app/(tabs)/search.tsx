@@ -14,6 +14,8 @@ interface SelectedOption {
   type: FilterType
 }
 
+const SEARCH_DELAY_MS = 300
+
 const EMPTY_REFERENCE_DATA: ReferenceData = { bases: [], assets: [], assetTypes: [], tags: [] }
 
 /** Search screen: text search plus category, asset, type and tag filters shown as removable chips. */
@@ -34,19 +36,30 @@ export default function SearchScreen() {
   }, [])
 
   useEffect(() => {
-    searchReports({ text: searchText, baseId, assetId, assetTypeId, tagIds })
-      .then(setReports)
-      .catch((error: Error) => Alert.alert(error.message))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseId, assetId, assetTypeId, tagIds])
+    let stale = false
+    // Wait for a pause in typing, and drop answers that arrive after a newer search started.
+    const timer = setTimeout(() => {
+      searchReports({ text: searchText, baseId, assetId, assetTypeId, tagIds })
+        .then((found) => !stale && setReports(found))
+        .catch((error: Error) => Alert.alert(error.message))
+    }, SEARCH_DELAY_MS)
+    return () => {
+      stale = true
+      clearTimeout(timer)
+    }
+  }, [searchText, baseId, assetId, assetTypeId, tagIds])
 
-  /** Applies a filter and shows it as a chip. */
+  /** Applies a filter and shows it as a chip; a new category, asset or type replaces the previous one. */
   function handleSelectOption(type: FilterType, id: number, libelle: string) {
+    if (type === 'tag' && tagIds.includes(id)) return
     if (type === 'base') setBaseId(id)
     if (type === 'asset') setAssetId(id)
     if (type === 'assetType') setAssetTypeId(id)
     if (type === 'tag') setTagIds((prev) => [...prev, id])
-    setSelectedOptions((prev) => [...prev, { id, libelle, type }])
+    setSelectedOptions((prev) => [
+      ...prev.filter((option) => type === 'tag' || option.type !== type),
+      { id, libelle, type },
+    ])
   }
 
   /** Removes a filter and its chip. */
@@ -93,8 +106,8 @@ export default function SearchScreen() {
       </View>
 
       <View style={styles.chips}>
-        {selectedOptions.map((option, index) => (
-          <View key={index} style={styles.chip}>
+        {selectedOptions.map((option) => (
+          <View key={`${option.type}-${option.id}`} style={styles.chip}>
             <Ionicons
               name="close"
               size={20}
