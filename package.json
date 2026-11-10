@@ -16,7 +16,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "bun run format:check && bun run lint && bun run typecheck",
-    "db:types": "bunx supabase gen types typescript > src/lib/database.types.ts"
+    "db:types": "bunx supabase gen types typescript > src/lib/database.types.ts",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:integration": "jest -c jest.integration.config.js",
+    "test:e2e": "maestro test .maestro"
   },
   "dependencies": {
     "@expo-google-fonts/atkinson-hyperlegible-next": "^0.4.1",
@@ -57,9 +61,13 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.13",
+    "@testing-library/react-native": "^14.1.0",
+    "@types/jest": "30.0.0",
     "@types/react": "~19.3.0",
     "eslint": "^9.39.5",
     "eslint-config-expo": "~58.0.4",
+    "jest": "~30.5.2",
+    "jest-expo": "~58.0.14",
     "prettier": "^3.9.10",
     "typescript": "~6.0.3"
   },
