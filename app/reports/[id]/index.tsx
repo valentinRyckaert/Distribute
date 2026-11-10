@@ -10,11 +10,13 @@ export default function ReportScreen() {
   const [report, setReport] = useState<ReportDetail | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchReport(Number(id))
       .then(setReport)
       .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false))
     isCurrentUserAdmin().then(setIsAdmin)
   }, [id])
 
@@ -27,6 +29,7 @@ export default function ReportScreen() {
       setError('Failed to update validation status.')
       return
     }
+    setReport({ ...report, REP_is_solution_validated: !report.REP_is_solution_validated })
     Alert.alert('Validation status updated successfully!')
   }
 
@@ -40,7 +43,7 @@ export default function ReportScreen() {
   if (!report) {
     return (
       <View style={styles.container}>
-        <Text>Loading...</Text>
+        <Text>{loading ? 'Loading...' : 'This report does not exist.'}</Text>
       </View>
     )
   }
