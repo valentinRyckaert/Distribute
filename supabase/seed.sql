@@ -21,3 +21,21 @@ insert into "Base"      ("BAS_libelle") values ('Réseau'), ('Matériel'), ('Log
 insert into "Asset"     ("AS_name")     values ('PC portable'), ('Imprimante');
 insert into "AssetType" ("AT_libelle")  values ('Poste de travail'), ('Périphérique');
 insert into "Tag"       ("TAG_libelle") values ('wifi'), ('lenteur'), ('mot de passe');
+
+-- Sample reports: one validated, one with a proposed solution, one still waiting.
+insert into "Report" ("REP_libelle", "REP_content", "REP_solution", "REP_is_solution_validated",
+  "BAS_id", "AS_id", "AT_id", "user_id", "REP_created_at")
+values
+ ('Le wifi se coupe toutes les 5 minutes',
+  'Depuis ce matin, mon ordinateur perd la connexion wifi régulièrement.',
+  E'Cliquez sur l''icône wifi en bas à droite de l''écran.\nChoisissez « Oublier ce réseau ».\nReconnectez-vous en saisissant le mot de passe du wifi.',
+  true, 1, 1, 1, '11111111-1111-1111-1111-111111111111', now() - interval '2 days'),
+ ('L''imprimante n''imprime plus',
+  'Les documents restent bloqués dans la file d''attente.',
+  E'Éteignez l''imprimante pendant 30 secondes.\nRallumez-la et attendez que le voyant soit vert.\nRelancez l''impression.',
+  false, 2, 2, 2, '22222222-2222-2222-2222-222222222222', now() - interval '1 day'),
+ ('Mon ordinateur est très lent au démarrage',
+  'Il faut plus de 10 minutes avant de pouvoir travailler.',
+  null, false, 3, 1, 1, '11111111-1111-1111-1111-111111111111', now() - interval '3 hours');
+
+insert into "ReportHasTag" ("REP_id", "TAG_id") values (1, 1), (2, 2), (3, 2);
