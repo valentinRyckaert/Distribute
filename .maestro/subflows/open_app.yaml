@@ -1,0 +1,9 @@
+# Opens the app served by Metro in Expo Go (adb reverse tcp:8081 tcp:8081).
+appId: host.exp.exponent
+---
+- launchApp:
+    stopApp: true
+- openLink: ${APP_URL || 'exp://127.0.0.1:8081'}
+- extendedWaitUntil:
+    visible: "Bienvenue sur Distribute|Connectez-vous|Bonjour.*"
+    timeout: 60000

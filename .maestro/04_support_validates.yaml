@@ -1,0 +1,39 @@
+# The admin proposes a solution for the new report, then validates it from the support space.
+appId: host.exp.exponent
+name: Le support valide une solution
+---
+- runFlow: subflows/open_app.yaml
+- runFlow:
+    file: subflows/sign_in.yaml
+    env:
+      EMAIL: admin@distribute.local
+- tapOn:
+    id: "tab-account"
+- scrollUntilVisible:
+    element: "Espace support (admin)"
+- tapOn: "Espace support (admin)"
+- tapOn: "Sans solution.*"
+- scrollUntilVisible:
+    element: "Maestro clavier sans fil muet"
+- tapOn: "Proposer une solution"
+- scrollUntilVisible:
+    element: "Votre solution"
+- tapOn: "Votre solution"
+- inputText: "Changez les piles du clavier"
+- hideKeyboard
+- tapOn: "Proposer une solution"
+- extendedWaitUntil:
+    visible: "Changez les piles du clavier"
+    timeout: 10000
+- tapOn: "Retour"
+- tapOn: "Retour"
+- tapOn: "Espace support (admin)"
+- tapOn: "À valider.*"
+- scrollUntilVisible:
+    element: "Changez les piles du clavier"
+- tapOn:
+    text: "Valider"
+    below: "Changez les piles du clavier"
+- assertNotVisible: "Changez les piles du clavier"
+- tapOn: "Retour"
+- runFlow: subflows/sign_out.yaml

@@ -1,0 +1,31 @@
+# Finds a solution despite a typo, follows its steps and says it worked.
+appId: host.exp.exponent
+name: Chercher et lire une solution
+---
+- runFlow: subflows/open_app.yaml
+- runFlow:
+    when:
+      notVisible: "Bonjour.*"
+    file: subflows/sign_in.yaml
+    env:
+      EMAIL: test@distribute.local
+- tapOn:
+    id: "tab-search"
+- tapOn:
+    id: "search-input"
+- inputText: "imprimente"
+- hideKeyboard
+- extendedWaitUntil:
+    visible: "L'imprimante n'imprime plus"
+    timeout: 10000
+- tapOn: "L'imprimante n'imprime plus"
+- assertVisible: "La solution, étape par étape"
+- tapOn: "Étape 1 : .*"
+- assertVisible:
+    checked: true
+    text: "Étape 1 : .*"
+- scrollUntilVisible:
+    element: "Est-ce que ça a marché.*"
+- tapOn: "Oui !"
+- assertVisible: "Merci ! Votre réponse aide vos collègues."
+- tapOn: "Retour"

@@ -1,0 +1,10 @@
+# Flows run in order against Expo Go (see README "End-to-end tests").
+flows:
+  - "*.yaml"
+executionOrder:
+  continueOnFailure: false
+  flowsOrder:
+    - 01_sign_in
+    - 02_search_and_read
+    - 03_report_problem
+    - 04_support_validates
