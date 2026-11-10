@@ -26,3 +26,8 @@ jest.mock('@expo/vector-icons/Ionicons', () => {
 jest.mock('expo-router', () => require('./mocks/expoRouter'))
 
 jest.mock('@/src/lib/supabase', () => require('./mocks/supabase'))
+
+jest.mock(
+  'react-native-safe-area-context',
+  () => jest.requireActual('react-native-safe-area-context/jest/mock').default,
+)
