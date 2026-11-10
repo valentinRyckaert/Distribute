@@ -1,190 +1,121 @@
-import { Ionicons } from '@expo/vector-icons'
-import { Picker } from '@react-native-picker/picker'
-import { useLocalSearchParams } from 'expo-router'
-import React, { useEffect, useState } from 'react'
-import { Alert, FlatList, StyleSheet, Text, TextInput, View } from 'react-native'
+import { router, useLocalSearchParams } from 'expo-router'
+import React, { useEffect, useRef, useState } from 'react'
+import { ScrollView, StyleSheet, View, type TextInputInstance } from 'react-native'
+import AppText from '@/src/components/AppText'
+import Button from '@/src/components/Button'
+import Card from '@/src/components/Card'
+import Chip from '@/src/components/Chip'
 import ReportCard from '@/src/components/ReportCard'
-import { fetchReferenceData, searchReports } from '@/src/lib/api'
-import type { ReferenceData, ReportWithTags } from '@/src/lib/types'
-
-type FilterType = 'base' | 'asset' | 'assetType' | 'tag'
-
-interface SelectedOption {
-  id: number
-  libelle: string
-  type: FilterType
-}
+import Screen from '@/src/components/Screen'
+import StateMessage from '@/src/components/StateMessage'
+import TextField from '@/src/components/TextField'
+import { fetchCategories, searchReports } from '@/src/lib/api'
+import { useQuery } from '@/src/lib/useQuery'
+import { spacing } from '@/src/theme/tokens'
 
 const SEARCH_DELAY_MS = 300
 
-const EMPTY_REFERENCE_DATA: ReferenceData = { bases: [], assets: [], assetTypes: [], tags: [] }
-
-/** Search screen: text search plus category, asset, type and tag filters shown as removable chips. */
+/** Search: typo-tolerant full-text search, filtered by category with chips. */
 export default function SearchScreen() {
-  const [searchText, setSearchText] = useState('')
-  const [reports, setReports] = useState<ReportWithTags[]>([])
-  const [reference, setReference] = useState<ReferenceData>(EMPTY_REFERENCE_DATA)
-  const [baseId, setBaseId] = useState<number | null>(null)
-  const [assetId, setAssetId] = useState<number | null>(null)
-  const [assetTypeId, setAssetTypeId] = useState<number | null>(null)
-  const [tagIds, setTagIds] = useState<number[]>([])
-  const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([])
-  const params = useLocalSearchParams<{ baseId?: string }>()
+  const params = useLocalSearchParams<{ baseId?: string; focus?: string }>()
+  const [text, setText] = useState('')
+  const [query, setQuery] = useState('')
+  const [baseId, setBaseId] = useState<number | null>(params.baseId ? Number(params.baseId) : null)
+  const input = useRef<TextInputInstance>(null)
+  const categories = useQuery(fetchCategories)
+  const results = useQuery(() => searchReports(query, baseId), [query, baseId])
 
-  useEffect(() => {
-    fetchReferenceData()
-      .then(setReference)
-      .catch((error: Error) => Alert.alert(error.message))
-  }, [])
-
-  useEffect(() => {
-    let stale = false
-    // Wait for a pause in typing, and drop answers that arrive after a newer search started.
-    const timer = setTimeout(() => {
-      searchReports({ text: searchText, baseId, assetId, assetTypeId, tagIds })
-        .then((found) => !stale && setReports(found))
-        .catch((error: Error) => Alert.alert(error.message))
-    }, SEARCH_DELAY_MS)
-    return () => {
-      stale = true
-      clearTimeout(timer)
-    }
-  }, [searchText, baseId, assetId, assetTypeId, tagIds])
-
-  // A category tapped on the home screen arrives as a route parameter.
-  useEffect(() => {
-    const base = reference.bases.find((candidate) => candidate.BAS_id === Number(params.baseId))
-    if (base) handleSelectOption('base', base.BAS_id, base.BAS_libelle)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.baseId, reference.bases])
-
-  /** Applies a filter and shows it as a chip; a new category, asset or type replaces the previous one. */
-  function handleSelectOption(type: FilterType, id: number, libelle: string) {
-    if (type === 'tag' && tagIds.includes(id)) return
-    if (type === 'base') setBaseId(id)
-    if (type === 'asset') setAssetId(id)
-    if (type === 'assetType') setAssetTypeId(id)
-    if (type === 'tag') setTagIds((prev) => [...prev, id])
-    setSelectedOptions((prev) => [
-      ...prev.filter((option) => type === 'tag' || option.type !== type),
-      { id, libelle, type },
-    ])
+  // A category tapped on the home screen arrives as a route parameter (the tab stays mounted).
+  const [routeBaseId, setRouteBaseId] = useState(params.baseId)
+  if (params.baseId !== routeBaseId) {
+    setRouteBaseId(params.baseId)
+    if (params.baseId) setBaseId(Number(params.baseId))
   }
 
-  /** Removes a filter and its chip. */
-  function handleRemoveOption(type: FilterType, id: number) {
-    if (type === 'base') setBaseId(null)
-    if (type === 'asset') setAssetId(null)
-    if (type === 'assetType') setAssetTypeId(null)
-    if (type === 'tag') setTagIds((prev) => prev.filter((tagId) => tagId !== id))
-    setSelectedOptions((prev) =>
-      prev.filter((option) => !(option.id === id && option.type === type)),
-    )
-  }
+  useEffect(() => {
+    if (params.focus) input.current?.focus()
+  }, [params.focus])
+
+  // Search after a pause in typing rather than at every key.
+  useEffect(() => {
+    const timer = setTimeout(() => setQuery(text), SEARCH_DELAY_MS)
+    return () => clearTimeout(timer)
+  }, [text])
+
+  const count = results.data?.length ?? 0
 
   return (
-    <View style={styles.container}>
-      <TextInput
-        placeholder="Rechercher par nom"
-        value={searchText}
-        onChangeText={setSearchText}
-        style={styles.searchInput}
-      />
+    <Screen bottomInset={false}>
+      <AppText variant="titleLarge" accessibilityRole="header">
+        Chercher une solution
+      </AppText>
+      <TextField
+        ref={input}
+        label="Votre problème en quelques mots"
+        icon="search-outline"
+        placeholder="Par exemple : wifi, imprimante"
+        value={text}
+        onChangeText={setText}
+        returnKeyType="search"
+        testID="search-input"
+      >
+        {!!text && (
+          <Button variant="tertiary" icon="close" label="Effacer" onPress={() => setText('')} />
+        )}
+      </TextField>
 
-      <View style={styles.pickers}>
-        <FilterPicker
-          placeholder="Select a Category"
-          items={reference.bases.map((b) => ({ id: b.BAS_id, label: b.BAS_libelle }))}
-          onSelect={(id, label) => handleSelectOption('base', id, label)}
-        />
-        <FilterPicker
-          placeholder="Select an Asset"
-          items={reference.assets.map((a) => ({ id: a.AS_id, label: a.AS_name }))}
-          onSelect={(id, label) => handleSelectOption('asset', id, label)}
-        />
-        <FilterPicker
-          placeholder="Select an Asset Type"
-          items={reference.assetTypes.map((t) => ({ id: t.AT_id, label: t.AT_libelle }))}
-          onSelect={(id, label) => handleSelectOption('assetType', id, label)}
-        />
-        <FilterPicker
-          placeholder="Select a Tag"
-          items={reference.tags.map((t) => ({ id: t.TAG_id, label: t.TAG_libelle }))}
-          onSelect={(id, label) => handleSelectOption('tag', id, label)}
-        />
-      </View>
-
-      <View style={styles.chips}>
-        {selectedOptions.map((option) => (
-          <View key={`${option.type}-${option.id}`} style={styles.chip}>
-            <Ionicons
-              name="close"
-              size={20}
-              color="black"
-              onPress={() => handleRemoveOption(option.type, option.id)}
-            />
-            <Text>{option.libelle}</Text>
-          </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.chips}
+      >
+        <Chip label="Tout" selected={baseId === null} onPress={() => setBaseId(null)} />
+        {categories.data?.map((category) => (
+          <Chip
+            key={category.BAS_id}
+            label={category.BAS_libelle}
+            selected={baseId === category.BAS_id}
+            onPress={() => setBaseId(category.BAS_id)}
+          />
         ))}
-      </View>
+      </ScrollView>
 
-      <FlatList
-        data={reports}
-        keyExtractor={(report) => report.REP_id.toString()}
-        renderItem={({ item }) => <ReportCard report={item} />}
-        contentContainerStyle={styles.list}
+      {results.data && (
+        <AppText variant="labelMedium" color="textSecondary" accessibilityLiveRegion="polite">
+          {count === 0
+            ? 'Aucune solution trouvée'
+            : `${count} solution${count > 1 ? 's' : ''} trouvée${count > 1 ? 's' : ''}`}
+        </AppText>
+      )}
+      <StateMessage
+        loading={results.loading && !results.data}
+        error={results.error}
+        onRetry={results.reload}
       />
-    </View>
-  )
-}
-
-interface FilterPickerProps {
-  placeholder: string
-  items: { id: number; label: string }[]
-  onSelect: (id: number, label: string) => void
-}
-
-/** A picker that reports the chosen item's id and label, then goes back to its placeholder. */
-function FilterPicker({ placeholder, items, onSelect }: FilterPickerProps) {
-  return (
-    <Picker<number | null>
-      selectedValue={null}
-      style={styles.picker}
-      onValueChange={(id) => {
-        const item = items.find((candidate) => candidate.id === id)
-        if (item) onSelect(item.id, item.label)
-      }}
-    >
-      <Picker.Item label={placeholder} value={null} />
-      {items.map((item) => (
-        <Picker.Item key={item.id} label={item.label} value={item.id} />
+      {results.data?.map((report) => (
+        <ReportCard key={report.REP_id} report={report} />
       ))}
-    </Picker>
+
+      <Card background="bgSubtle">
+        <AppText variant="titleSmall">Vous ne trouvez pas votre problème ?</AppText>
+        <AppText color="textSecondary">
+          Décrivez-le en quelques mots, un collègue ou le support vous répondra.
+        </AppText>
+        <View>
+          <Button
+            variant="secondary"
+            icon="add-circle-outline"
+            label="Signaler ce problème"
+            onPress={() =>
+              router.push({ pathname: '/report', params: text ? { title: text } : {} })
+            }
+          />
+        </View>
+      </Card>
+    </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#f8f9fa' },
-  searchInput: {
-    borderWidth: 1,
-    borderColor: '#ced4da',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 20,
-    backgroundColor: '#ffffff',
-  },
-  pickers: { marginBottom: 20 },
-  picker: { height: 50, width: '100%', marginBottom: 10 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 20 },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#e9ecef',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginRight: 10,
-    marginBottom: 10,
-  },
-  list: { paddingBottom: 20 },
+  chips: { gap: spacing.sm, paddingRight: spacing.xl },
 })
