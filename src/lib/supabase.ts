@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { AppState } from 'react-native'
+import { encryptedStorage } from './encryptedStorage'
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? ''
 const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_KEY ?? ''
@@ -7,6 +8,7 @@ const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_KEY ?? ''
 /** The single Supabase client shared by the whole app. */
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
+    storage: encryptedStorage,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
