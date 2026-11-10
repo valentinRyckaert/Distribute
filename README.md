@@ -16,6 +16,7 @@ cd Distribute
 ```
 
 Create a .env file
+
 ```env
 EXPO_PUBLIC_SUPABASE_URL=https://supabase/yourdb
 EXPO_PUBLIC_SUPABASE_KEY=your_api_key
@@ -41,6 +42,7 @@ bun db:stop
 - Test user: `test@distribute.local` / `password123`
 
 Point the app to it in `.env` (use your machine's LAN IP, not `localhost`, so a phone can reach it):
+
 ```env
 EXPO_PUBLIC_SUPABASE_URL=http://192.168.x.x:54321
 EXPO_PUBLIC_SUPABASE_KEY=<PUBLISHABLE_KEY printed by bun db:start>
@@ -49,6 +51,7 @@ EXPO_PUBLIC_SUPABASE_KEY=<PUBLISHABLE_KEY printed by bun db:start>
 ## Run on your phone with Expo Go
 
 Phone and computer on the same Wi-Fi, then:
+
 ```shell
 bun go        # expo start --go, scan the QR code with Expo Go (Android) or the Camera app (iOS)
 bun go --tunnel  # if the phone can't reach your machine (different network, firewall)

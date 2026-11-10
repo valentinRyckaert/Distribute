@@ -1,108 +1,47 @@
-import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
-import RenderReport from '../components/RenderReport';
-import { supabase } from '../lib/supabase';
-import { Category, Report } from '../lib/types';
+import React, { useEffect, useState } from 'react'
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native'
+import ReportCard from '@/src/components/ReportCard'
+import { fetchBases, fetchLatestReports } from '@/src/lib/api'
+import type { Base, ReportWithTags } from '@/src/lib/types'
 
-export default function Index() {
-  const [latestPosts, setLatestPosts] = useState<Report[]>([])
-  const [baseList, setBaseList] = useState<Category[]>([])
+/** Home screen: the latest reports and the list of categories. */
+export default function HomeScreen() {
+  const [latestReports, setLatestReports] = useState<ReportWithTags[]>([])
+  const [bases, setBases] = useState<Base[]>([])
 
   useEffect(() => {
-    fetchLatestPosts()
-    fetchCategories()
+    fetchLatestReports()
+      .then(setLatestReports)
+      .catch((error: Error) => Alert.alert(error.message))
+    fetchBases()
+      .then(setBases)
+      .catch((error: Error) => Alert.alert(error.message))
   }, [])
 
-  const fetchLatestPosts = async () => {
-    const { data, error } = await supabase
-      .from('Report')
-      .select('*')
-      .order('REP_created_at', { ascending: false })
-      .limit(5)
-    if (error) Alert.alert(error.message)
-    else {
-      setLatestPosts(data)
-    }
-  }
-
-  const fetchCategories = async () => {
-    const { data, error } = await supabase
-      .from('Base')
-      .select('*')
-    if (error) Alert.alert(error.message)
-    else setBaseList(data)
-  }
-
   return (
-    
-      <ScrollView style={styles.container}>
+    <ScrollView style={styles.container}>
+      <Text style={styles.sectionTitle}>Latest Posts</Text>
+      {latestReports.map((report) => (
+        <ReportCard key={report.REP_id} report={report} />
+      ))}
 
-        <Text style={styles.sectionTitle}>Latest Posts</Text>
-        
-        {latestPosts.map((item: Report)=> <RenderReport item={item}/>)}
-
-        <Text style={styles.sectionTitle}>Categories</Text>
-        <View style={styles.categoriesContainer}>
-          {baseList.map((object: Category) => (
-            <Text key={object.BAS_id} style={styles.categoryItem}>
-              {object.BAS_libelle}
-            </Text>
-          ))}
-        </View>
-      </ScrollView>
-    
+      <Text style={styles.sectionTitle}>Categories</Text>
+      <View style={styles.categories}>
+        {bases.map((base) => (
+          <Text key={base.BAS_id} style={styles.category}>
+            {base.BAS_libelle}
+          </Text>
+        ))}
+      </View>
+    </ScrollView>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#f9f9f9',
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#333',
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: '#555',
-  },
-  listContainer: {
-    paddingBottom: 16,
-  },
-  postItem: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-  },
-  postTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  postDate: {
-    fontSize: 14,
-    color: '#777',
-    marginTop: 4,
-  },
-  categoriesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 8,
-  },
-  categoryItem: {
+  container: { flex: 1, padding: 16, backgroundColor: '#f9f9f9' },
+  sectionTitle: { fontSize: 20, fontWeight: '600', marginBottom: 8, color: '#555' },
+  categories: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
+  category: {
     backgroundColor: '#007BFF',
     color: '#fff',
     paddingHorizontal: 12,

@@ -1,142 +1,66 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
-import React, { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
-import RenderReport from '../components/RenderReport';
-import { supabase } from '../lib/supabase';
-import { Asset, AssetType, Category, Report, Tag } from '../lib/types';
+import { Ionicons } from '@expo/vector-icons'
+import { Picker } from '@react-native-picker/picker'
+import React, { useEffect, useState } from 'react'
+import { Alert, FlatList, StyleSheet, Text, TextInput, View } from 'react-native'
+import ReportCard from '@/src/components/ReportCard'
+import { fetchReferenceData, searchReports } from '@/src/lib/api'
+import type { ReferenceData, ReportWithTags } from '@/src/lib/types'
+
+type FilterType = 'base' | 'asset' | 'assetType' | 'tag'
 
 interface SelectedOption {
-  id: number;
-  libelle: string;
-  type: string;
+  id: number
+  libelle: string
+  type: FilterType
 }
 
-export default function Search() {
-  const [searchText, setSearchText] = useState<string>('');
-  const [reports, setReports] = useState<Report[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [assetTypes, setAssetTypes] = useState<AssetType[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<number | ''>('');
-  const [selectedAsset, setSelectedAsset] = useState<number | ''>('');
-  const [selectedAssetType, setSelectedAssetType] = useState<number | ''>('');
-  const [selectedTags, setSelectedTags] = useState<number[]>([]);
-  const [tagIdForPicker, setTagIdForPicker] = useState<Tag | ''>('');
-  const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
+const EMPTY_REFERENCE_DATA: ReferenceData = { bases: [], assets: [], assetTypes: [], tags: [] }
+
+/** Search screen: text search plus category, asset, type and tag filters shown as removable chips. */
+export default function SearchScreen() {
+  const [searchText, setSearchText] = useState('')
+  const [reports, setReports] = useState<ReportWithTags[]>([])
+  const [reference, setReference] = useState<ReferenceData>(EMPTY_REFERENCE_DATA)
+  const [baseId, setBaseId] = useState<number | null>(null)
+  const [assetId, setAssetId] = useState<number | null>(null)
+  const [assetTypeId, setAssetTypeId] = useState<number | null>(null)
+  const [tagIds, setTagIds] = useState<number[]>([])
+  const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([])
 
   useEffect(() => {
-    fetchCategories();
-    fetchAssets();
-    fetchAssetTypes();
-    fetchTags();
-  }, []);
+    fetchReferenceData()
+      .then(setReference)
+      .catch((error: Error) => Alert.alert(error.message))
+  }, [])
 
   useEffect(() => {
-    fetchReports();
-  }, [selectedCategory, selectedAsset, selectedAssetType, selectedTags]);
+    searchReports({ text: searchText, baseId, assetId, assetTypeId, tagIds })
+      .then(setReports)
+      .catch((error: Error) => Alert.alert(error.message))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [baseId, assetId, assetTypeId, tagIds])
 
-  const fetchCategories = async () => {
-    const { data, error } = await supabase.from('Base').select('*');
-    if (error) console.error(error);
-    else setCategories(data);
-  };
+  /** Applies a filter and shows it as a chip. */
+  function handleSelectOption(type: FilterType, id: number, libelle: string) {
+    if (type === 'base') setBaseId(id)
+    if (type === 'asset') setAssetId(id)
+    if (type === 'assetType') setAssetTypeId(id)
+    if (type === 'tag') setTagIds((prev) => [...prev, id])
+    setSelectedOptions((prev) => [...prev, { id, libelle, type }])
+  }
 
-  const fetchAssets = async () => {
-    const { data, error } = await supabase.from('Asset').select('*');
-    if (error) console.error(error);
-    else setAssets(data);
-  };
-
-  const fetchAssetTypes = async () => {
-    const { data, error } = await supabase.from('AssetType').select('*');
-    if (error) console.error(error);
-    else setAssetTypes(data);
-  };
-
-  const fetchTags = async () => {
-    const { data, error } = await supabase.from('Tag').select('*');
-    if (error) console.error(error);
-    else setTags(data);
-  };
-
-  const fetchReports = async () => {
-    let query = supabase.from('Report').select('*');
-
-    if (searchText) {
-      query = query.ilike('REP_libelle', `%${searchText}%`);
-    }
-
-    if (selectedCategory) {
-      query = query.eq('BAS_id', selectedCategory);
-    }
-
-    if (selectedAsset) {
-      query = query.eq('AS_id', selectedAsset);
-    }
-
-    if (selectedAssetType) {
-      query = query.eq('AT_id', selectedAssetType);
-    }
-
-    if (selectedTags.length > 0) {
-      const { data: reportHasTags, error } = await supabase
-        .from('ReportHasTag')
-        .select('REP_id')
-        .in('TAG_id', selectedTags);
-
-      if (error) console.error(error);
-      else {
-        const reportIds = reportHasTags.map(rht => rht.REP_id);
-        query = query.in('REP_id', reportIds);
-      }
-    }
-
-    const { data, error } = await query;
-    if (error) console.error(error);
-    else setReports(data);
-  };
-
-  const handleSelectOption = (type: string, id: number, libelle: string) => {
-    switch (type) {
-      case 'category':
-        setSelectedCategory(id);
-        break;
-      case 'asset':
-        setSelectedAsset(id);
-        break;
-      case 'assetType':
-        setSelectedAssetType(id);
-        break;
-      case 'tag':
-        setSelectedTags(prev => [...prev, id]);
-        break;
-    }
-    setSelectedOptions(prev => [...prev, { id, libelle, type }]);
-  };
-
-  const handleRemoveOption = (type: string, id: number) => {
-    switch (type) {
-      case 'category':
-        setSelectedCategory('');
-        break;
-      case 'asset':
-        setSelectedAsset('');
-        break;
-      case 'assetType':
-        setSelectedAssetType('');
-        break;
-      case 'tag':
-        setSelectedTags(prev => prev.filter(tagId => tagId !== id));
-        setTagIdForPicker('')
-        break;
-    }
-    setSelectedOptions(prev => prev.filter(option => !(option.id === id && option.type === type)));
-  };
+  /** Removes a filter and its chip. */
+  function handleRemoveOption(type: FilterType, id: number) {
+    if (type === 'base') setBaseId(null)
+    if (type === 'asset') setAssetId(null)
+    if (type === 'assetType') setAssetTypeId(null)
+    if (type === 'tag') setTagIds((prev) => prev.filter((tagId) => tagId !== id))
+    setSelectedOptions((prev) =>
+      prev.filter((option) => !(option.id === id && option.type === type)),
+    )
+  }
 
   return (
-    
     <View style={styles.container}>
       <TextInput
         placeholder="Rechercher par nom"
@@ -145,52 +69,38 @@ export default function Search() {
         style={styles.searchInput}
       />
 
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={selectedCategory}
-          style={styles.picker}
-          onValueChange={(itemLibelle: string, itemIndex: number) => handleSelectOption('category', itemIndex, itemLibelle)}>
-          <Picker.Item label="Select a Category" value={null} />
-          {categories.map((category) => (
-            <Picker.Item key={category.BAS_id} label={category.BAS_libelle} value={category.BAS_libelle} />
-          ))}
-        </Picker>
-
-        <Picker
-          selectedValue={selectedAsset}
-          style={styles.picker}
-          onValueChange={(itemLibelle: string, itemIndex: number) => handleSelectOption('asset', itemIndex, itemLibelle)}>
-          <Picker.Item label="Select an Asset" value={null} />
-          {assets.map((asset) => (
-            <Picker.Item key={asset.AS_id} label={asset.AS_name} value={asset.AS_name} />
-          ))}
-        </Picker>
-
-        <Picker
-          selectedValue={selectedAssetType}
-          style={styles.picker}
-          onValueChange={(itemLibelle: string, itemIndex: number) => handleSelectOption('assetType', itemIndex, itemLibelle)}>
-          <Picker.Item label="Select an Asset Type" value={null} />
-          {assetTypes.map((assetType) => (
-            <Picker.Item key={assetType.AT_id} label={assetType.AT_libelle} value={assetType.AT_libelle} />
-          ))}
-        </Picker>
-
-        <Picker
-          selectedValue={tagIdForPicker}
-          style={styles.picker}
-          onValueChange={(itemLibelle: string, itemIndex: number) => handleSelectOption('tag', itemIndex, itemLibelle)}>
-          <Picker.Item label="Select a Tag" value={null} />
-          {tags.map((tag) => (
-            <Picker.Item key={tag.TAG_id} label={tag.TAG_libelle} value={tag.TAG_libelle} />
-          ))}
-        </Picker>
+      <View style={styles.pickers}>
+        <FilterPicker
+          placeholder="Select a Category"
+          items={reference.bases.map((b) => ({ id: b.BAS_id, label: b.BAS_libelle }))}
+          onSelect={(id, label) => handleSelectOption('base', id, label)}
+        />
+        <FilterPicker
+          placeholder="Select an Asset"
+          items={reference.assets.map((a) => ({ id: a.AS_id, label: a.AS_name }))}
+          onSelect={(id, label) => handleSelectOption('asset', id, label)}
+        />
+        <FilterPicker
+          placeholder="Select an Asset Type"
+          items={reference.assetTypes.map((t) => ({ id: t.AT_id, label: t.AT_libelle }))}
+          onSelect={(id, label) => handleSelectOption('assetType', id, label)}
+        />
+        <FilterPicker
+          placeholder="Select a Tag"
+          items={reference.tags.map((t) => ({ id: t.TAG_id, label: t.TAG_libelle }))}
+          onSelect={(id, label) => handleSelectOption('tag', id, label)}
+        />
       </View>
 
-      <View style={styles.selectedOptionsContainer}>
+      <View style={styles.chips}>
         {selectedOptions.map((option, index) => (
-          <View key={index} style={styles.selectedOption}>
-            <Ionicons name="close" size={20} color="black" onPress={() => handleRemoveOption(option.type, option.id)} />
+          <View key={index} style={styles.chip}>
+            <Ionicons
+              name="close"
+              size={20}
+              color="black"
+              onPress={() => handleRemoveOption(option.type, option.id)}
+            />
             <Text>{option.libelle}</Text>
           </View>
         ))}
@@ -198,21 +108,41 @@ export default function Search() {
 
       <FlatList
         data={reports}
-        keyExtractor={(item) => item.REP_id.toString()}
-        renderItem={({ item }) => <RenderReport item={item}/>}
-        contentContainerStyle={styles.listContainer}
+        keyExtractor={(report) => report.REP_id.toString()}
+        renderItem={({ item }) => <ReportCard report={item} />}
+        contentContainerStyle={styles.list}
       />
     </View>
-    
-  );
+  )
+}
+
+interface FilterPickerProps {
+  placeholder: string
+  items: { id: number; label: string }[]
+  onSelect: (id: number, label: string) => void
+}
+
+/** A picker that reports the chosen item's id and label, then goes back to its placeholder. */
+function FilterPicker({ placeholder, items, onSelect }: FilterPickerProps) {
+  return (
+    <Picker<number | null>
+      selectedValue={null}
+      style={styles.picker}
+      onValueChange={(id) => {
+        const item = items.find((candidate) => candidate.id === id)
+        if (item) onSelect(item.id, item.label)
+      }}
+    >
+      <Picker.Item label={placeholder} value={null} />
+      {items.map((item) => (
+        <Picker.Item key={item.id} label={item.label} value={item.id} />
+      ))}
+    </Picker>
+  )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#f8f9fa',
-  },
+  container: { flex: 1, padding: 20, backgroundColor: '#f8f9fa' },
   searchInput: {
     borderWidth: 1,
     borderColor: '#ced4da',
@@ -221,20 +151,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     backgroundColor: '#ffffff',
   },
-  pickerContainer: {
-    marginBottom: 20,
-  },
-  picker: {
-    height: 50,
-    width: '100%',
-    marginBottom: 10,
-  },
-  selectedOptionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 20,
-  },
-  selectedOption: {
+  pickers: { marginBottom: 20 },
+  picker: { height: 50, width: '100%', marginBottom: 10 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 20 },
+  chip: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#e9ecef',
@@ -244,7 +164,5 @@ const styles = StyleSheet.create({
     marginRight: 10,
     marginBottom: 10,
   },
-  listContainer: {
-    paddingBottom: 20,
-  },
-});
+  list: { paddingBottom: 20 },
+})
