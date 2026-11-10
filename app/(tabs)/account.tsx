@@ -21,13 +21,22 @@ export default function AccountScreen() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user)
-      if (data.user) {
-        fetchUserReports(data.user.id)
-          .then(setReports)
-          .catch((error: Error) => Alert.alert('Error', error.message))
-      }
+      if (data.user) loadReports(data.user.id)
     })
   }, [])
+
+  /** Loads the reports written by the user. */
+  function loadReports(userId: string) {
+    fetchUserReports(userId)
+      .then(setReports)
+      .catch((error: Error) => Alert.alert('Error', error.message))
+  }
+
+  /** Closes the edit form and reloads the list so the change shows. */
+  function handleSaved() {
+    setEditedReportId(null)
+    if (user) loadReports(user.id)
+  }
 
   /** Deletes a report after the user confirmed it. */
   async function handleDelete(reportId: number) {
@@ -142,7 +151,9 @@ export default function AccountScreen() {
               />
             </View>
           )}
-          {editedReportId === report.REP_id && <ReportForm currentReport={report} />}
+          {editedReportId === report.REP_id && (
+            <ReportForm currentReport={report} onSaved={handleSaved} />
+          )}
         </View>
       ))}
       <Button onPress={signOut} title="Sign Out" color="#FF5733" />
