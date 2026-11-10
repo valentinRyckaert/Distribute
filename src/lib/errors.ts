@@ -25,7 +25,11 @@ const MESSAGES: [RegExp, string][] = [
 
 /** Turns any error into a short French sentence the user can act on. */
 export function friendlyError(error: unknown): string {
-  const message = error instanceof Error ? error.message : String(error)
+  // Supabase errors are plain objects with a message, not always Error instances.
+  const message =
+    typeof error === 'object' && error !== null && 'message' in error
+      ? String(error.message)
+      : String(error)
   return (
     MESSAGES.find(([pattern]) => pattern.test(message))?.[1] ??
     'Une erreur est survenue. Réessayez.'

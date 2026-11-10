@@ -299,6 +299,21 @@ describe('support space', () => {
     })
   })
 
+  it('turns supabase error objects into errors, "0 rows" into a refusal', async () => {
+    queueResponse({ error: { message: 'boom', code: '42501' } })
+    await expect(api.fetchUnsolvedReports()).rejects.toMatchObject({
+      message: 'boom',
+      code: '42501',
+    })
+    queueResponse({ error: { message: 'Cannot coerce the result', code: 'PGRST116' } })
+    await expect(api.deleteReport(1)).rejects.toThrow('Not found or not allowed')
+  })
+
+  it('detects a duplicate mark silently ignored by the database', async () => {
+    queueResponse({ data: { REP_duplicate_of: null } })
+    await expect(api.markDuplicate(1, 2)).rejects.toThrow('Not found or not allowed')
+  })
+
   it('creates and deletes categories', async () => {
     await api.createCategory(' Visio ', 'videocam-outline', ' Teams ')
     expect(called('insert')[0][1]).toEqual({

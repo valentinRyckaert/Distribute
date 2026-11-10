@@ -15,6 +15,10 @@ describe('friendlyError', () => {
     expect(friendlyError(new Error(message))).toMatch(expected)
   })
 
+  it('reads the message of plain error objects', () => {
+    expect(friendlyError({ message: 'Invalid login credentials' })).toMatch(/incorrect/)
+  })
+
   it('falls back to a generic sentence, also for non-errors', () => {
     expect(friendlyError(new Error('boom'))).toBe('Une erreur est survenue. Réessayez.')
     expect(friendlyError('weird')).toBe('Une erreur est survenue. Réessayez.')

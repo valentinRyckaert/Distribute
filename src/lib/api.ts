@@ -18,11 +18,20 @@ const PHOTO_BUCKET = 'report-photos'
 const FAVORITES_CACHE = 'distribute-favorites'
 
 /**
+ * Turns a Supabase error (a plain object at runtime) into a real Error.
+ * "0 rows" on `.single()` means the row does not exist or RLS refused the change.
+ */
+function toError(error: { message: string; code?: string }): Error {
+  if (error.code === 'PGRST116') return new Error('Not found or not allowed')
+  return Object.assign(new Error(error.message), error)
+}
+
+/**
  * Throws the Supabase error if there is one, otherwise returns the data.
  * @throws {Error} the PostgREST error
  */
 function unwrap<T>(response: PostgrestSingleResponse<T>): T {
-  if (response.error) throw response.error
+  if (response.error) throw toError(response.error)
   return response.data as T
 }
 
@@ -37,8 +46,8 @@ function unwrapRow<T>(response: PostgrestSingleResponse<T>): NonNullable<T> {
 }
 
 /** Throws the Auth or Storage error if there is one. */
-function check(result: { error: Error | null }): void {
-  if (result.error) throw result.error
+function check(result: { error: { message: string } | null }): void {
+  if (result.error) throw toError(result.error)
 }
 
 // Session and account -----------------------------------------------------------------------
@@ -191,7 +200,7 @@ export async function uploadPhoto(uri: string): Promise<string> {
 /** Returns a temporary (1 hour) link to a report photo. */
 export async function getPhotoUrl(path: string): Promise<string> {
   const { data, error } = await supabase.storage.from(PHOTO_BUCKET).createSignedUrl(path, 3600)
-  if (error) throw error
+  if (error) throw toError(error)
   return data.signedUrl
 }
 
@@ -319,7 +328,7 @@ export async function countUnreadNotifications(): Promise<number> {
     .from('Notification')
     .select('*', { count: 'exact', head: true })
     .eq('NOT_read', false)
-  if (error) throw error
+  if (error) throw toError(error)
   return count ?? 0
 }
 
@@ -381,7 +390,7 @@ export async function refuseSolution(id: number): Promise<void> {
 
 /** Marks a report as a duplicate of another one, which hides it from lists and search. */
 export async function markDuplicate(id: number, originalId: number): Promise<void> {
-  unwrapRow(
+  const row = unwrapRow(
     await supabase
       .from('Report')
       .update({ REP_duplicate_of: originalId })
@@ -389,6 +398,8 @@ export async function markDuplicate(id: number, originalId: number): Promise<voi
       .select('REP_duplicate_of')
       .single(),
   )
+  // The database silently keeps the old value for non-admins.
+  if (row.REP_duplicate_of !== originalId) throw new Error('Not found or not allowed')
 }
 
 /** Fetches the call-back requests not handled yet, oldest first. */
