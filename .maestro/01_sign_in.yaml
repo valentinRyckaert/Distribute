@@ -5,28 +5,28 @@ name: Connexion
 - runFlow: subflows/open_app.yaml
 - runFlow:
     when:
-      visible: "Bonjour.*"
+      visible: 'Bonjour.*'
     file: subflows/sign_out.yaml
 - runFlow:
     when:
-      visible: "Bienvenue sur Distribute"
+      visible: 'Bienvenue sur Distribute'
     commands:
-      - tapOn: "Commencer"
+      - tapOn: 'Commencer'
 - tapOn:
-    id: "login-email"
-- inputText: "test@distribute.local"
+    id: 'login-email'
+- inputText: 'test@distribute.local'
 - tapOn:
-    id: "login-password"
-- inputText: "mauvais123"
+    id: 'login-password'
+- inputText: 'mauvais123'
 - hideKeyboard
-- tapOn: "Me connecter"
-- assertVisible: "E-mail ou mot de passe incorrect."
+- tapOn: 'Me connecter'
+- assertVisible: 'E-mail ou mot de passe incorrect.'
 - tapOn:
-    id: "login-password"
+    id: 'login-password'
 - eraseText: 20
-- inputText: "password123"
+- inputText: 'password123'
 - hideKeyboard
-- tapOn: "Me connecter"
+- tapOn: 'Me connecter'
 - extendedWaitUntil:
-    visible: "Bonjour Marie,"
+    visible: 'Bonjour Marie,'
     timeout: 15000

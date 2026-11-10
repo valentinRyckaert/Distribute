@@ -1,6 +1,6 @@
 # Flows run in order against Expo Go (see README "End-to-end tests").
 flows:
-  - "*.yaml"
+  - '*.yaml'
 executionOrder:
   continueOnFailure: false
   flowsOrder:

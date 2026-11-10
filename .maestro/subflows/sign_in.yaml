@@ -3,21 +3,21 @@ appId: host.exp.exponent
 ---
 - runFlow:
     when:
-      visible: "Bonjour.*"
+      visible: 'Bonjour.*'
     file: sign_out.yaml
 - runFlow:
     when:
-      visible: "Bienvenue sur Distribute"
+      visible: 'Bienvenue sur Distribute'
     commands:
-      - tapOn: "Commencer"
+      - tapOn: 'Commencer'
 - tapOn:
-    id: "login-email"
+    id: 'login-email'
 - inputText: ${EMAIL}
 - tapOn:
-    id: "login-password"
-- inputText: "password123"
+    id: 'login-password'
+- inputText: 'password123'
 - hideKeyboard
-- tapOn: "Me connecter"
+- tapOn: 'Me connecter'
 - extendedWaitUntil:
-    visible: "Bonjour.*"
+    visible: 'Bonjour.*'
     timeout: 15000

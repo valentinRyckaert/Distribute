@@ -5,5 +5,5 @@ appId: host.exp.exponent
     stopApp: true
 - openLink: ${APP_URL || 'exp://127.0.0.1:8081'}
 - extendedWaitUntil:
-    visible: "Bienvenue sur Distribute|Connectez-vous|Bonjour.*"
+    visible: 'Bienvenue sur Distribute|Connectez-vous|Bonjour.*'
     timeout: 60000

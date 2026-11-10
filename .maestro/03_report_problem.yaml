@@ -5,30 +5,30 @@ name: Signaler un problème
 - runFlow: subflows/open_app.yaml
 - runFlow:
     when:
-      notVisible: "Bonjour.*"
+      notVisible: 'Bonjour.*'
     file: subflows/sign_in.yaml
     env:
       EMAIL: test@distribute.local
 - tapOn:
-    id: "tab-report"
-- assertVisible: "Étape 1 sur 3"
-- tapOn: "Ordinateur, Lent, bloqué, écran"
-- tapOn: "Continuer"
-- assertVisible: "Étape 2 sur 3"
+    id: 'tab-report'
+- assertVisible: 'Étape 1 sur 3'
+- tapOn: 'Ordinateur, Lent, bloqué, écran'
+- tapOn: 'Continuer'
+- assertVisible: 'Étape 2 sur 3'
 - tapOn:
-    id: "report-title"
-- inputText: "Maestro clavier sans fil muet"
+    id: 'report-title'
+- inputText: 'Maestro clavier sans fil muet'
 - hideKeyboard
 - scrollUntilVisible:
-    element: "Aujourd’hui"
-- tapOn: "Aujourd’hui"
-- tapOn: "Continuer"
-- assertVisible: "Vérifiez avant d’envoyer"
-- assertVisible: "Maestro clavier sans fil muet"
-- tapOn: "Envoyer mon signalement"
+    element: 'Aujourd’hui'
+- tapOn: 'Aujourd’hui'
+- tapOn: 'Continuer'
+- assertVisible: 'Vérifiez avant d’envoyer'
+- assertVisible: 'Maestro clavier sans fil muet'
+- tapOn: 'Envoyer mon signalement'
 - extendedWaitUntil:
-    visible: "C’est envoyé !"
+    visible: 'C’est envoyé !'
     timeout: 15000
-- tapOn: "Voir mon signalement"
-- assertVisible: "Maestro clavier sans fil muet"
-- assertVisible: "Pas encore de solution"
+- tapOn: 'Voir mon signalement'
+- assertVisible: 'Maestro clavier sans fil muet'
+- assertVisible: 'Pas encore de solution'

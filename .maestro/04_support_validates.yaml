@@ -8,32 +8,32 @@ name: Le support valide une solution
     env:
       EMAIL: admin@distribute.local
 - tapOn:
-    id: "tab-account"
+    id: 'tab-account'
 - scrollUntilVisible:
-    element: "Espace support (admin)"
-- tapOn: "Espace support (admin)"
-- tapOn: "Sans solution.*"
+    element: 'Espace support (admin)'
+- tapOn: 'Espace support (admin)'
+- tapOn: 'Sans solution.*'
 - scrollUntilVisible:
-    element: "Maestro clavier sans fil muet"
-- tapOn: "Proposer une solution"
+    element: 'Maestro clavier sans fil muet'
+- tapOn: 'Proposer une solution'
 - scrollUntilVisible:
-    element: "Votre solution"
-- tapOn: "Votre solution"
-- inputText: "Changez les piles du clavier"
+    element: 'Votre solution'
+- tapOn: 'Votre solution'
+- inputText: 'Changez les piles du clavier'
 - hideKeyboard
-- tapOn: "Proposer une solution"
+- tapOn: 'Proposer une solution'
 - extendedWaitUntil:
-    visible: "Changez les piles du clavier"
+    visible: 'Changez les piles du clavier'
     timeout: 10000
-- tapOn: "Retour"
-- tapOn: "Retour"
-- tapOn: "Espace support (admin)"
-- tapOn: "À valider.*"
+- tapOn: 'Retour'
+- tapOn: 'Retour'
+- tapOn: 'Espace support (admin)'
+- tapOn: 'À valider.*'
 - scrollUntilVisible:
-    element: "Changez les piles du clavier"
+    element: 'Changez les piles du clavier'
 - tapOn:
-    text: "Valider"
-    below: "Changez les piles du clavier"
-- assertNotVisible: "Changez les piles du clavier"
-- tapOn: "Retour"
+    text: 'Valider'
+    below: 'Changez les piles du clavier'
+- assertNotVisible: 'Changez les piles du clavier'
+- tapOn: 'Retour'
 - runFlow: subflows/sign_out.yaml

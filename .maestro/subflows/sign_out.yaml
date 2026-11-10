@@ -1,11 +1,11 @@
 appId: host.exp.exponent
 ---
 - tapOn:
-    id: "tab-account"
+    id: 'tab-account'
 - scrollUntilVisible:
-    element: "Se déconnecter"
-- tapOn: "Se déconnecter"
-- tapOn: "SE DÉCONNECTER|Se déconnecter"
+    element: 'Se déconnecter'
+- tapOn: 'Se déconnecter'
+- tapOn: 'SE DÉCONNECTER|Se déconnecter'
 - extendedWaitUntil:
-    visible: "Connectez-vous"
+    visible: 'Connectez-vous'
     timeout: 10000
