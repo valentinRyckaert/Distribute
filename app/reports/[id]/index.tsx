@@ -23,7 +23,7 @@ export default function Index() {
   const fetchUserRole = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-          setIsAdmin(user.role === "admin");
+          setIsAdmin(user.app_metadata.role === "admin");
       } else {
           setError("User not logged in");
       }
