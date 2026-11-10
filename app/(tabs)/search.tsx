@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
 import { Picker } from '@react-native-picker/picker'
+import { useLocalSearchParams } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { Alert, FlatList, StyleSheet, Text, TextInput, View } from 'react-native'
 import ReportCard from '@/src/components/ReportCard'
@@ -28,6 +29,7 @@ export default function SearchScreen() {
   const [assetTypeId, setAssetTypeId] = useState<number | null>(null)
   const [tagIds, setTagIds] = useState<number[]>([])
   const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([])
+  const params = useLocalSearchParams<{ baseId?: string }>()
 
   useEffect(() => {
     fetchReferenceData()
@@ -48,6 +50,13 @@ export default function SearchScreen() {
       clearTimeout(timer)
     }
   }, [searchText, baseId, assetId, assetTypeId, tagIds])
+
+  // A category tapped on the home screen arrives as a route parameter.
+  useEffect(() => {
+    const base = reference.bases.find((candidate) => candidate.BAS_id === Number(params.baseId))
+    if (base) handleSelectOption('base', base.BAS_id, base.BAS_libelle)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.baseId, reference.bases])
 
   /** Applies a filter and shows it as a chip; a new category, asset or type replaces the previous one. */
   function handleSelectOption(type: FilterType, id: number, libelle: string) {

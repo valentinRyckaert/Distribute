@@ -1,3 +1,4 @@
+import { Link } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native'
 import ReportCard from '@/src/components/ReportCard'
@@ -28,9 +29,13 @@ export default function HomeScreen() {
       <Text style={styles.sectionTitle}>Categories</Text>
       <View style={styles.categories}>
         {bases.map((base) => (
-          <Text key={base.BAS_id} style={styles.category}>
+          <Link
+            key={base.BAS_id}
+            href={{ pathname: '/search', params: { baseId: base.BAS_id } }}
+            style={styles.category}
+          >
             {base.BAS_libelle}
-          </Text>
+          </Link>
         ))}
       </View>
     </ScrollView>
