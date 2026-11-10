@@ -3,3 +3,4 @@ bun.lock
 .expo
 dist
 supabase/.temp
+src/lib/database.types.ts

@@ -1,40 +1,19 @@
+import type { Tables } from './database.types'
+
 /** A problem report and its solution, as stored in the `Report` table. */
-export interface Report {
-  REP_id: number
-  REP_created_at: string
-  REP_libelle: string
-  REP_content: string
-  REP_solution: string | null
-  REP_is_solution_validated: boolean
-  AS_id: number | null
-  BAS_id: number | null
-  AT_id: number | null
-  user_id: string | null
-}
+export type Report = Tables<'Report'>
 
 /** A report category ("base"), e.g. network or software. */
-export interface Base {
-  BAS_id: number
-  BAS_libelle: string
-}
+export type Base = Tables<'Base'>
 
 /** A piece of equipment the report is about. */
-export interface Asset {
-  AS_id: number
-  AS_name: string
-}
+export type Asset = Tables<'Asset'>
 
 /** A family of equipment, e.g. workstation or peripheral. */
-export interface AssetType {
-  AT_id: number
-  AT_libelle: string
-}
+export type AssetType = Tables<'AssetType'>
 
 /** A free keyword attached to reports. */
-export interface Tag {
-  TAG_id: number
-  TAG_libelle: string
-}
+export type Tag = Tables<'Tag'>
 
 /** A report with its tags embedded. */
 export interface ReportWithTags extends Report {
