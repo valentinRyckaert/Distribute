@@ -16,9 +16,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "bun run format:check && bun run lint && bun run typecheck",
-    "db:types": "bunx supabase gen types typescript --local > src/lib/database.types.ts"
+    "db:types": "bunx supabase gen types typescript > src/lib/database.types.ts"
   },
   "dependencies": {
+    "@expo-google-fonts/atkinson-hyperlegible-next": "^0.4.1",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-picker/picker": "^2.11.4",
@@ -34,9 +35,11 @@
     "expo-font": "~58.0.11",
     "expo-haptics": "~58.0.7",
     "expo-image": "~58.0.18",
+    "expo-image-picker": "~58.0.10",
     "expo-linking": "~58.0.16",
     "expo-router": "~58.0.30",
     "expo-secure-store": "~58.0.2",
+    "expo-speech": "~58.0.3",
     "expo-splash-screen": "~58.0.13",
     "expo-status-bar": "~58.0.4",
     "expo-symbols": "~58.0.4",

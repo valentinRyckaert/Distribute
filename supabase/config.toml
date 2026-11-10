@@ -250,6 +250,11 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# The app resets passwords with the 6-digit code, not a link.
+[auth.email.template.recovery]
+subject = "Votre code Distribute"
+content_path = "./supabase/templates/recovery.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"
